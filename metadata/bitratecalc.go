@@ -4,7 +4,6 @@ import (
 	"github.com/vladaad/discordcompressor/settings"
 )
 
-
 func SelectEncoder (bitrate int) bool {
 	for i := range settings.Encoding.BitrateTargets {
 		if settings.Encoding.BitrateTargets[i].BitrateMin < bitrate {

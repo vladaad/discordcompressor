@@ -13,6 +13,7 @@ type VidStats struct {
 	FPS		 float64
 	Bitrate  int
 	Duration float64
+	Pixfmt   string
 }
 
 var Starttime float64

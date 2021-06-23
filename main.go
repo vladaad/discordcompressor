@@ -53,6 +53,7 @@ func main() {
 		log.Println("Input stats:")
 		log.Println(strconv.Itoa(settings.VideoStats.Height) + "p " + strconv.FormatFloat(settings.VideoStats.FPS, 'f', -1, 64) + "fps")
 		log.Println("Length: " + strconv.FormatFloat(settings.VideoStats.Duration, 'f', -1, 64) + " seconds")
+		log.Println("Pixel format: " + settings.VideoStats.Pixfmt)
 	}
 
 	// ss+t fixing

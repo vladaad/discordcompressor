@@ -21,7 +21,7 @@ func GetStats(filepath string) *settings.VidStats {
 		"-loglevel", "quiet",
 		"-of", "flat",
 		"-select_streams", "v:0",
-		"-show_entries", "stream=r_frame_rate:stream=height:format=duration:format=bit_rate",
+		"-show_entries", "stream=r_frame_rate:stream=height:stream=pix_fmt:format=duration:format=bit_rate",
 		filepath,
 		)
 
@@ -66,6 +66,12 @@ func GetStats(filepath string) *settings.VidStats {
 			cleanedLine := strings.ReplaceAll(line, "\"", "")
 			splitString := strings.Split(cleanedLine, "=")
 			stats.Duration, _ = strconv.ParseFloat(splitString[len(splitString)-1], 64)
+		}
+		// Pix_fmt
+		if strings.HasPrefix(line, "streams.stream.0.pix_fmt") {
+			cleanedLine := strings.ReplaceAll(line, "\"", "")
+			splitString := strings.Split(cleanedLine, "=")
+			stats.Pixfmt = splitString[len(splitString)-1]
 		}
 	}
 
