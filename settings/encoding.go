@@ -169,7 +169,7 @@ func initEncoding() *encoding {
 			{
 				Name:         "x264",
 				Encoder:      "libx264",
-				Options:      "-x264-params qpmin=22",
+				Options:      "-x264-params qpmin=20",
 				Keyint:       10,
 				PresetCmd:    "-preset",
 				TwoPass:      true,
@@ -183,9 +183,9 @@ func initEncoding() *encoding {
 				Encoder:      "aac",
 				Options:      "",
 				UsesBitrate:  true,
-				MaxBitrate:   160,
-				MinBitrate:   112,
-				BitratePerc:  10,
+				MaxBitrate:   192,
+				MinBitrate:   128,
+				BitratePerc:  12,
 			},
 		},
 	}
