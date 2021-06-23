@@ -3,6 +3,7 @@ package settings
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/kardianos/osext"
 	"os"
 )
 
@@ -21,7 +22,9 @@ func initStorage() {
 
 func LoadSettings(version string) bool {
 	initStorage()
-	fileName = "settings"
+
+	fileName, _ := osext.ExecutableFolder()
+	fileName += "/settings"
 	if version != "" {
 		fileName += "-" + version
 	}

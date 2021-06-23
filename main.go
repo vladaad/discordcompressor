@@ -25,6 +25,7 @@ func main() {
 	}
 	log.SetOutput(io.MultiWriter(os.Stdout, file))
 
+	// Settings loading
 	settings.LoadSettings("")
 
 	// Parsing flags
