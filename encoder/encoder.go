@@ -53,7 +53,9 @@ func Encode(filename string, pass int, videoBitrate int, audioMerge bool, audioB
 		settings.SelectedVEncoder.PresetCmd, settings.SelectedSettings.Preset,
 		"-b:v", strconv.Itoa(videoBitrate) + "k",
 	)
-	options = append(options, vEncoderOptions...)
+	if settings.SelectedVEncoder.Options != "" {
+		options = append(options, vEncoderOptions...)
+	}
 	options = append(options, "-g", strconv.FormatFloat(FPS * float64(settings.SelectedVEncoder.Keyint), 'f', -1, 64))
 
 	// 2pass
