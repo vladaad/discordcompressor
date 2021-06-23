@@ -25,19 +25,19 @@ func main() {
 	}
 	log.SetOutput(io.MultiWriter(os.Stdout, file))
 
-	// Settings loading
-	settings.LoadSettings("")
-
 	// Parsing flags
+	settingsFile := flag.String("settings", "", "Selects the settings file to be used")
 	inputVideo := flag.String("i", "", "Sets the input video")
 	startTime := flag.Float64("ss", float64(0), "Sets the starting time")
 	time := flag.Float64("t", float64(0), "Sets the time to encode")
-	targetSizeMB := flag.Float64("size", settings.Encoding.SizeTargetMB, "Sets the target size in MB")
+	targetSize := flag.Float64("size", float64(-1), "Sets the target size in MB")
 	debug := flag.Bool("debug", false, "Prints extra info")
 	focus := flag.String("focus", "", "Sets the focus")
 	original := flag.Bool("noscale", false, "Disables FPS limiting and scaling")
 	flag.Parse()
 
+	// Settings loading
+	settings.LoadSettings(*settingsFile)
 	settings.InputVideo = *inputVideo
 	settings.Starttime = *startTime
 	settings.Time = *time
@@ -45,7 +45,11 @@ func main() {
 	settings.Original = *original
 	settings.Focus = *focus
 
-	targetSizeKbit := int(*targetSizeMB * float64(8192))
+	// targetSizeMB defaults loading
+	if *targetSize == float64(-1) {
+		*targetSize = settings.Encoding.SizeTargetMB
+	}
+	targetSizeKbit := int(*targetSize * float64(8192))
 
 	// Video analysis
 	log.Println("Analyzing video...")
