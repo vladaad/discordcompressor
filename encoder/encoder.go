@@ -52,6 +52,7 @@ func Encode(filename string, pass int, videoBitrate int, audioMerge bool, audioB
 		"-c:v", settings.SelectedVEncoder.Encoder,
 		settings.SelectedVEncoder.PresetCmd, settings.SelectedSettings.Preset,
 		"-b:v", strconv.Itoa(videoBitrate) + "k",
+		"-vsync", "cfr",
 	)
 	if settings.SelectedVEncoder.Options != "" {
 		options = append(options, vEncoderOptions...)
