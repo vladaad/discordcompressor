@@ -2,13 +2,16 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/vladaad/discordcompressor/encoder"
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"path"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -37,13 +40,23 @@ func main() {
 	flag.Parse()
 
 	// Settings loading
-	settings.LoadSettings(*settingsFile)
 	settings.InputVideo = *inputVideo
 	settings.Starttime = *startTime
 	settings.Time = *time
 	settings.Debug = *debug
 	settings.Original = *original
 	settings.Focus = *focus
+
+	// ;)
+	newSettings := settings.LoadSettings(*settingsFile)
+	if *inputVideo == "" && !newSettings {
+		OpenURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+	}
+
+	if *inputVideo == "" {
+		log.Println("No input video specified, closing...")
+		os.Exit(0)
+	}
 
 	// targetSizeMB defaults loading
 	if *targetSize == float64(-1) {
@@ -130,4 +143,22 @@ func main() {
 func CalculateBitrate(video *settings.VidStats, targetSize int) int{
 	Bitrate := float64(targetSize) / video.Duration
 	return int(Bitrate)
+}
+
+func OpenURL(url string) {
+	var err error
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform")
+	}
+	if err != nil {
+		log.Fatal(err)
+	}
 }
