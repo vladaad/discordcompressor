@@ -25,7 +25,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   7500,
 				Encoder:      "x264",
-				AudioEncoder: "aac",
+				AudioEncoder: "aac2",
 				Preset:       "medium",
 			}, {
 				Limits: []*Limits{
@@ -42,7 +42,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   5000,
 				Encoder:      "x264",
-				AudioEncoder: "aac",
+				AudioEncoder: "aac2",
 				Preset:       "slow",
 			}, {
 				Limits: []*Limits{
@@ -59,7 +59,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   3750,
 				Encoder:      "x264",
-				AudioEncoder: "aac",
+				AudioEncoder: "aac2",
 				Preset:       "slower",
 			}, {
 				Limits: []*Limits{
@@ -76,7 +76,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   2500,
 				Encoder:      "x264",
-				AudioEncoder: "aac",
+				AudioEncoder: "aac2",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -93,7 +93,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   1500,
 				Encoder:      "x264",
-				AudioEncoder: "aac",
+				AudioEncoder: "aac1.5",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -110,7 +110,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   1000,
 				Encoder:      "x264",
-				AudioEncoder: "aac",
+				AudioEncoder: "aac1.5",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -127,7 +127,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   650,
 				Encoder:      "x264",
-				AudioEncoder: "aac",
+				AudioEncoder: "aac1.1",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -144,7 +144,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   400,
 				Encoder:      "x264",
-				AudioEncoder: "aac",
+				AudioEncoder: "aac1.1",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -161,7 +161,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   0,
 				Encoder:      "x264",
-				AudioEncoder: "aac",
+				AudioEncoder: "aac1.1",
 				Preset:       "veryslow",
 			},
 		},
@@ -169,6 +169,7 @@ func initEncoding() *encoding {
 			{
 				Name:         "x264",
 				Encoder:      "libx264",
+				CodecName:    "H.264",
 				Options:      "-x264-params qpmin=20",
 				Keyint:       10,
 				PresetCmd:    "-preset",
@@ -179,10 +180,31 @@ func initEncoding() *encoding {
 		},
 		AudioEncoders: []*AudioEncoder{
 			{
-				Name:         "aac",
+				Name:         "aac1.5",
 				Encoder:      "aac",
-				Options:      "",
-				UsesBitrate:  true,
+				CodecName:    "aac",
+				Options:      "-qscale:a 1.5",
+				UsesBitrate:  false,
+				MaxBitrate:   192,
+				MinBitrate:   128,
+				BitratePerc:  12,
+			},
+			{
+				Name:         "aac1.1",
+				Encoder:      "aac",
+				CodecName:    "aac",
+				Options:      "-qscale:a 1.1",
+				UsesBitrate:  false,
+				MaxBitrate:   192,
+				MinBitrate:   128,
+				BitratePerc:  12,
+			},
+			{
+				Name:         "aac2",
+				Encoder:      "aac",
+				CodecName:    "aac",
+				Options:      "-qscale:a 2",
+				UsesBitrate:  false,
 				MaxBitrate:   192,
 				MinBitrate:   128,
 				BitratePerc:  12,
@@ -220,6 +242,7 @@ type Limits struct {
 type Encoder struct {
 	Name         string
 	Encoder      string
+	CodecName    string
 	Options      string
 	Keyint       int
 	PresetCmd    string
@@ -231,6 +254,7 @@ type Encoder struct {
 type AudioEncoder struct {
 	Name         string
 	Encoder      string
+	CodecName    string
 	Options      string
 	UsesBitrate  bool
 	MaxBitrate   int

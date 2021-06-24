@@ -9,11 +9,14 @@ type fileformat struct {
 }
 
 type VidStats struct {
-	Height	 int
-	FPS		 float64
-	Bitrate  int
-	Duration float64
-	Pixfmt   string
+	Height	     int
+	FPS		     float64
+	Bitrate      int
+	Duration     float64
+	Pixfmt       string
+	AudioTracks  int
+	AudioCodec   string
+	AudioBitrate int
 }
 
 var Starttime float64

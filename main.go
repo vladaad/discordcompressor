@@ -72,6 +72,8 @@ func main() {
 		log.Println(strconv.Itoa(settings.VideoStats.Height) + "p " + strconv.FormatFloat(settings.VideoStats.FPS, 'f', -1, 64) + "fps")
 		log.Println("Length: " + strconv.FormatFloat(settings.VideoStats.Duration, 'f', -1, 64) + " seconds")
 		log.Println("Pixel format: " + settings.VideoStats.Pixfmt)
+		log.Println("Audio tracks: " + strconv.Itoa(settings.VideoStats.AudioTracks))
+		log.Println(settings.VideoStats.AudioCodec + ", " + strconv.Itoa(settings.VideoStats.AudioBitrate / 1024) + "k")
 	}
 
 	// ss+t fixing
@@ -161,4 +163,13 @@ func OpenURL(url string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func Exists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }

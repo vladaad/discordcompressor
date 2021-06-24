@@ -75,5 +75,52 @@ func GetStats(filepath string) *settings.VidStats {
 		}
 	}
 
+	// Getting audio info
+	aprobe := exec.Command(
+		settings.General.FFprobeExecutable,
+		"-loglevel", "quiet",
+		"-of", "flat",
+		"-select_streams", "a",
+		"-show_entries", "stream=index:stream=codec_name:stream=bit_rate",
+		filepath,
+		)
+
+	pipe, err = aprobe.StdoutPipe()
+	if err != nil {
+		panic("Failed to start stdout pipe")
+	}
+
+	err = aprobe.Start()
+	if err != nil {
+		panic("Failed to start FFprobe")
+	}
+
+	ascanner := bufio.NewScanner(pipe)
+	totalStreams := 0
+
+	for ascanner.Scan() {
+		line := ascanner.Text()
+		// Stream counter
+		if strings.HasPrefix(line, "streams.stream." + strconv.Itoa(totalStreams)) {
+			totalStreams += 1
+		}
+		// Codec name
+		if strings.HasPrefix(line, "streams.stream.0.codec_name") {
+			cleanedLine := strings.ReplaceAll(line, "\"", "")
+			splitString := strings.Split(cleanedLine, "=")
+			stats.AudioCodec = splitString[len(splitString)-1]
+		}
+		// Audio bitrate (not in mkv :/)
+		if strings.HasPrefix(line, "streams.stream.0.bit_rate") {
+			cleanedLine := strings.ReplaceAll(line, "\"", "")
+			splitString := strings.Split(cleanedLine, "=")
+			if splitString[len(splitString)-1] == "N/A" {
+				stats.AudioBitrate = -1
+			} else {
+				stats.AudioBitrate, _ = strconv.Atoi(splitString[len(splitString)-1])
+			}
+		}
+	}
+	stats.AudioTracks = totalStreams
 	return stats
 }
