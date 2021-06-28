@@ -46,8 +46,8 @@ func filters(pass int) string {
 	}
 
 	// Yuv420p conversion
-	if settings.VideoStats.Pixfmt != "yuv420p" {
-		filters = append(filters, "format=yuv420p")
+	if settings.VideoStats.Pixfmt != settings.SelectedVEncoder.Pixfmt {
+		filters = append(filters, "format=" + settings.SelectedVEncoder.Pixfmt)
 	}
 
 	return strings.Join(filters, ",")

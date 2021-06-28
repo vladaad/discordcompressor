@@ -170,7 +170,7 @@ func initEncoding() *encoding {
 				Name:         "x264",
 				Encoder:      "libx264",
 				CodecName:    "h264",
-				Pixfmt:       "yuv420p10le",
+				Pixfmt:       "yuv420p",
 				Options:      "-x264-params qpmin=20",
 				Keyint:       10,
 				PresetCmd:    "-preset",
