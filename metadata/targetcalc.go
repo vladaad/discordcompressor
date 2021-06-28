@@ -30,14 +30,14 @@ func CalculateTarget(filename string, targetSize int) *settings.OutTarget {
 			target.AudioBitrate = settings.SelectedAEncoder.MinBitrate
 		}
 	}
-	target.AudioPassthrough, target.VideoPassthrough = CheckStreamCompatibility(filename)
+	target.AudioPassthrough, target.VideoPassthrough, target.AudioBitrate = CheckStreamCompatibility(filename, target.AudioBitrate)
 	if target.AudioPassthrough {
 		target.AudioBitrate = settings.VideoStats.AudioBitrate
 	}
 	// Encode audio
 	if !target.AudioPassthrough {
 		log.Println("Encoding audio...")
-		target.AudioBitrate = EncodeAudio(filename)
+		target.AudioBitrate = EncodeAudio(filename, target.AudioBitrate)
 	}
 	if settings.VideoStats.AudioTracks != 0 {
 		if settings.Debug {

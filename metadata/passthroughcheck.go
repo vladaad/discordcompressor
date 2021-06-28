@@ -5,13 +5,16 @@ import (
 	"log"
 )
 
-func CheckStreamCompatibility(filename string) (audioCompatible bool, videoCompatible bool) {
+func CheckStreamCompatibility(filename string, audioBitrateIn int) (audioCompatible bool, videoCompatible bool, audioBitrateOut int) {
 	audioCompatible, videoCompatible = false, false
 	// If bitrate wasn't able to be analyzed, analyze it xd
-	if (settings.VideoStats.AudioBitrate == -1 || settings.VideoStats.VideoBitrate == -1) && settings.VideoStats.AudioTracks != 0 {
+	if (settings.VideoStats.AudioBitrate == 0 || settings.VideoStats.VideoBitrate == 0) && settings.VideoStats.AudioTracks != 0 {
 		settings.VideoStats.AudioBitrate = AnalyzeAudio(filename)
+	}
+	// VB calc
+	if settings.VideoStats.AudioTracks != 0 {
 		settings.VideoStats.VideoBitrate = settings.VideoStats.Bitrate - settings.VideoStats.AudioBitrate
-	} else if settings.VideoStats.VideoBitrate == -1 {
+	} else {
 		settings.VideoStats.VideoBitrate = settings.VideoStats.Bitrate
 	}
 	// To save you from understanding this spaghetti, the audio has to be:
@@ -19,6 +22,7 @@ func CheckStreamCompatibility(filename string) (audioCompatible bool, videoCompa
 	// Below max bitrate
 	if settings.VideoStats.AudioCodec == settings.SelectedAEncoder.CodecName && settings.VideoStats.AudioBitrate < settings.SelectedAEncoder.MaxBitrate && settings.VideoStats.AudioTracks != 0 {
 		audioCompatible = true
+		audioBitrateIn = settings.VideoStats.AudioBitrate
 	}
 
 	if settings.VideoStats.AudioTracks > 1 {
@@ -30,10 +34,10 @@ func CheckStreamCompatibility(filename string) (audioCompatible bool, videoCompa
 	// Video bitrate must be detected
 	// Audio should be passed through too
 	// Video bitrate must be below total bitrate
-	if settings.VideoStats.VideoBitrate != -1 && settings.SelectedVEncoder.CodecName == settings.VideoStats.VideoCodec {
+	if settings.SelectedVEncoder.CodecName == settings.VideoStats.VideoCodec && (settings.VideoStats.Pixfmt == "yuv420p" || settings.VideoStats.Pixfmt == "yuv420p10le" || settings.VideoStats.Pixfmt == settings.SelectedVEncoder.Pixfmt) {
 		if audioCompatible && settings.MaxTotalBitrate < settings.VideoStats.Bitrate {
 			videoCompatible = true
-		} else if settings.VideoStats.VideoBitrate< settings.MaxTotalBitrate - settings.OutputTarget.AudioBitrate {
+		} else if settings.VideoStats.VideoBitrate < settings.MaxTotalBitrate - audioBitrateIn {
 			videoCompatible = true
 		}
 	}
@@ -43,5 +47,5 @@ func CheckStreamCompatibility(filename string) (audioCompatible bool, videoCompa
 		audioCompatible, videoCompatible = false, false
 	}
 
-	return audioCompatible, videoCompatible
+	return audioCompatible, videoCompatible, audioBitrateIn
 }

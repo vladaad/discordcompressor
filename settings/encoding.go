@@ -170,6 +170,7 @@ func initEncoding() *encoding {
 				Name:         "x264",
 				Encoder:      "libx264",
 				CodecName:    "h264",
+				Pixfmt:       "yuv420p10le",
 				Options:      "-x264-params qpmin=20",
 				Keyint:       10,
 				PresetCmd:    "-preset",
@@ -243,6 +244,7 @@ type Encoder struct {
 	Name         string
 	Encoder      string
 	CodecName    string
+	Pixfmt       string
 	Options      string
 	Keyint       int
 	PresetCmd    string

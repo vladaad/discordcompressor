@@ -21,7 +21,7 @@ func GetStats(filepath string) *settings.VidStats {
 		"-loglevel", "quiet",
 		"-of", "flat",
 		"-select_streams", "v:0",
-		"-show_entries", "stream=r_frame_rate:stream=height:stream=pix_fmt:format=duration:format=bit_rate",
+		"-show_entries", "stream=r_frame_rate:stream=height:stream=pix_fmt:stream=codec_name:format=duration:format=bit_rate",
 		filepath,
 		)
 
@@ -141,5 +141,9 @@ func GetStats(filepath string) *settings.VidStats {
 		stats.Duration = settings.Time
 	}
 	stats.AudioTracks = totalStreams
+	// Bitrates -> k
+	stats.Bitrate /= 1024
+	stats.VideoBitrate /= 1024
+	stats.AudioBitrate /= 1024
 	return stats
 }

@@ -5,18 +5,21 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func AnalyzeAudio(filename string) int {
 	log.Println("Extracting audio for analysis...")
+	sFilename := strings.Split(filename, ".")
+	extension := sFilename[len(sFilename)-1]
+	outFilename := strings.Replace(filename, extension, "analyse." + extension, len(sFilename) - 1)
 	extract := exec.Command(
 		settings.General.FFmpegExecutable,
 		"-i", filename,
 		"-map", "0:a:0",
 		"-c", "copy",
-		"analyze" + filename,
+		outFilename,
 	)
-
 	err := extract.Start()
 	if err != nil {
 		panic("Couldn't start FFmpeg")
@@ -27,7 +30,7 @@ func AnalyzeAudio(filename string) int {
 		panic(err)
 	}
 
-	bitrate := GetStats("analyze" + filename).Bitrate
-	os.Remove("analyze" + filename)
+	bitrate := GetStats(outFilename).Bitrate
+	os.Remove(outFilename)
 	return bitrate
 }
