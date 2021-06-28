@@ -169,7 +169,7 @@ func initEncoding() *encoding {
 			{
 				Name:         "x264",
 				Encoder:      "libx264",
-				CodecName:    "H.264",
+				CodecName:    "h264",
 				Options:      "-x264-params qpmin=20",
 				Keyint:       10,
 				PresetCmd:    "-preset",

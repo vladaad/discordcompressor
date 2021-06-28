@@ -73,6 +73,22 @@ func GetStats(filepath string) *settings.VidStats {
 			splitString := strings.Split(cleanedLine, "=")
 			stats.Pixfmt = splitString[len(splitString)-1]
 		}
+		// Codec name
+		if strings.HasPrefix(line, "streams.stream.0.codec_name") {
+			cleanedLine := strings.ReplaceAll(line, "\"", "")
+			splitString := strings.Split(cleanedLine, "=")
+			stats.VideoCodec = splitString[len(splitString)-1]
+		}
+		// Bitrate
+		if strings.HasPrefix(line, "streams.stream.0.bit_rate") {
+			cleanedLine := strings.ReplaceAll(line, "\"", "")
+			splitString := strings.Split(cleanedLine, "=")
+			if splitString[len(splitString)-1] == "N/A" {
+				stats.VideoBitrate = -1
+			} else {
+				stats.VideoBitrate, _ = strconv.Atoi(splitString[len(splitString)-1])
+			}
+		}
 	}
 
 	// Getting audio info
@@ -120,6 +136,9 @@ func GetStats(filepath string) *settings.VidStats {
 				stats.AudioBitrate, _ = strconv.Atoi(splitString[len(splitString)-1])
 			}
 		}
+	}
+	if settings.Time != float64(0) {
+		stats.Duration = settings.Time
 	}
 	stats.AudioTracks = totalStreams
 	return stats

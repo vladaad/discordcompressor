@@ -17,6 +17,15 @@ type VidStats struct {
 	AudioTracks  int
 	AudioCodec   string
 	AudioBitrate int
+	VideoCodec   string
+	VideoBitrate int
+}
+
+type OutTarget struct {
+	AudioPassthrough bool
+	VideoPassthrough bool
+	VideoBitrate     int
+	AudioBitrate     int
 }
 
 var Starttime float64
@@ -25,7 +34,10 @@ var SelectedSettings *Target
 var SelectedLimits *Limits
 var SelectedVEncoder *Encoder
 var SelectedAEncoder *AudioEncoder
+var MaxTotalBitrate int
 var VideoStats *VidStats
+var OutputTarget *OutTarget
+var MixTracks bool
 var InputVideo string
 var Debug bool
 var Focus string

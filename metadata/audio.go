@@ -1,12 +1,12 @@
-package encoder
+package metadata
 
 import (
-	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
 	"log"
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 )
 
@@ -14,7 +14,7 @@ func EncodeAudio(filename string) int {
 	var options []string
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + ".audio." + settings.SelectedVEncoder.Container
 	encoderSettings := strings.Split(settings.SelectedAEncoder.Options, " ")
-	times := appendTimes()
+	times := AppendTimes()
 
 	// Input options
 	if settings.Debug {
@@ -37,6 +37,11 @@ func EncodeAudio(filename string) int {
 	)
 	if settings.SelectedAEncoder.Options != "" {
 		options = append(options, encoderSettings...)
+	}
+	if settings.SelectedAEncoder.UsesBitrate {
+		options = append(options,
+			"-b:a", strconv.Itoa(settings.OutputTarget.AudioBitrate)+"k",
+		)
 	}
 
 	// Output
@@ -62,5 +67,5 @@ func EncodeAudio(filename string) int {
 		panic(err)
 	}
 
-	return metadata.GetStats(outputFilename).Bitrate
+	return GetStats(outputFilename).Bitrate / 1024
 }
