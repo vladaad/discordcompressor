@@ -35,7 +35,7 @@ func CalculateTarget(filename string, targetSize int) *settings.OutTarget {
 		target.AudioBitrate = settings.VideoStats.AudioBitrate
 	}
 	// Encode audio
-	if !target.AudioPassthrough {
+	if !target.AudioPassthrough && settings.VideoStats.AudioTracks != 0 {
 		log.Println("Encoding audio...")
 		target.AudioBitrate = EncodeAudio(filename, target.AudioBitrate)
 	}
