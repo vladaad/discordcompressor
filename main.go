@@ -69,10 +69,10 @@ func main() {
 		log.Println("Length: " + strconv.FormatFloat(settings.VideoStats.Duration, 'f', -1, 64) + " seconds")
 		log.Println("Pixel format: " + settings.VideoStats.Pixfmt)
 		log.Println("Audio tracks: " + strconv.Itoa(settings.VideoStats.AudioTracks))
-		log.Println(settings.VideoStats.AudioCodec + ", " + strconv.Itoa(settings.VideoStats.AudioBitrate) + "k")
+		log.Println(settings.VideoStats.AudioCodec + ", " + strconv.FormatFloat(settings.VideoStats.AudioBitrate, 'f', 1, 64) + "k")
 	}
 	// Choosing target, audio encoding
-	settings.OutputTarget = metadata.CalculateTarget(*inputVideo, int(*targetSize * float64(8192)))
+	settings.OutputTarget = metadata.CalculateTarget(*inputVideo, *targetSize * 8192)
 
 	// ss+t check
 	if settings.Starttime + settings.Time > settings.VideoStats.Duration {
@@ -88,7 +88,7 @@ func main() {
 
 	// Video bitrate calc
 	if settings.Debug {
-		log.Println("Calculated target bitrate: " + strconv.Itoa(settings.MaxTotalBitrate) + "k")
+		log.Println("Calculated target bitrate: " + strconv.FormatFloat(settings.MaxTotalBitrate, 'f', 1, 64) + "k")
 	}
 
 	// Encode

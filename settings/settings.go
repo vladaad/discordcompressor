@@ -11,21 +11,21 @@ type fileformat struct {
 type VidStats struct {
 	Height	     int
 	FPS		     float64
-	Bitrate      int
+	Bitrate      float64
 	Duration     float64
 	Pixfmt       string
 	AudioTracks  int
 	AudioCodec   string
-	AudioBitrate int
+	AudioBitrate float64
 	VideoCodec   string
-	VideoBitrate int
+	VideoBitrate float64
 }
 
 type OutTarget struct {
 	AudioPassthrough bool
 	VideoPassthrough bool
-	VideoBitrate     int
-	AudioBitrate     int
+	VideoBitrate     float64
+	AudioBitrate     float64
 }
 
 var Starttime float64
@@ -34,7 +34,7 @@ var SelectedSettings *Target
 var SelectedLimits *Limits
 var SelectedVEncoder *Encoder
 var SelectedAEncoder *AudioEncoder
-var MaxTotalBitrate int
+var MaxTotalBitrate float64
 var VideoStats *VidStats
 var OutputTarget *OutTarget
 var MixTracks bool

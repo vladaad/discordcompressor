@@ -219,8 +219,8 @@ type encoding struct {
 	HalveDownFPS          bool
 	SizeTargetMB          float64
 	BitrateTargetMult     float64
-	BitrateLimitMax       int
-	BitrateLimitMin       int
+	BitrateLimitMax       float64
+	BitrateLimitMin       float64
 	BitrateTargets        []*Target
 	Encoders              []*Encoder
 	AudioEncoders         []*AudioEncoder
@@ -228,7 +228,7 @@ type encoding struct {
 
 type Target struct {
 	Limits       []*Limits
-	BitrateMin   int
+	BitrateMin   float64
 	Encoder      string
 	AudioEncoder string
 	Preset       string
@@ -259,7 +259,7 @@ type AudioEncoder struct {
 	CodecName    string
 	Options      string
 	UsesBitrate  bool
-	MaxBitrate   int
-	MinBitrate   int
+	MaxBitrate   float64
+	MinBitrate   float64
 	BitratePerc  int
 }

@@ -1,7 +1,7 @@
 package metadata
 
 import (
-	"bufio"
+	"encoding/json"
 	"github.com/vladaad/discordcompressor/settings"
 	"os"
 	"os/exec"
@@ -9,141 +9,94 @@ import (
 	"strings"
 )
 
+type StreamList struct {
+	Streams []Stream `json:"streams"`
+	Format Format `json:"format"`
+}
+
+type Stream struct {
+	CodecName string `json:"streams"`
+	StreamType string `json:"codec_type"`
+	Height int `json:"height"`
+	Pixfmt string `json:"pix_fmt"`
+	Framerate string `json:"avg_frame_rate"`
+	Bitrate string `json:"bit_rate"`
+}
+
+type Format struct {
+	Duration string `json:"duration"`
+	Bitrate string `json:"bit_rate"`
+}
+
 func GetStats(filepath string) *settings.VidStats {
+	stats := new(settings.VidStats)
 	if _, err := os.Stat(filepath); err != nil {
 		panic(filepath + " doesn't exist")
 	}
 
-	stats := new(settings.VidStats)
-
-	probe := exec.Command(
+	probe, err := exec.Command(
 		settings.General.FFprobeExecutable,
 		"-loglevel", "quiet",
-		"-of", "flat",
-		"-select_streams", "v:0",
-		"-show_entries", "stream=r_frame_rate:stream=height:stream=pix_fmt:stream=codec_name:format=duration:format=bit_rate",
+		"-of", "json",
+		"-select_streams", "v",
+		"-show_entries", "stream:format",
 		filepath,
-		)
+		).Output()
 
-	pipe, err := probe.StdoutPipe()
-	if err != nil {
-		panic("Failed to start stdout pipe")
-	}
-
-	scanner := bufio.NewScanner(pipe)
-
-	err = probe.Start()
 	if err != nil {
 		panic("Failed to start FFprobe")
 	}
+	// JSON parsing
+	probeOutput := new(StreamList)
 
-	for scanner.Scan() {
-
-		line := scanner.Text()
-		// Height
-		if strings.HasPrefix(line, "streams.stream.0.height=") {
-			splitString := strings.Split(line, "=")
-			stats.Height, _ = strconv.Atoi(splitString[len(splitString)-1])
-		}
-		// FPS
-		if strings.HasPrefix(line, "streams.stream.0.r_frame_rate") {
-			cleanedLine := strings.ReplaceAll(line, "\"", "")
-			splitString := strings.Split(cleanedLine, "=")
-			splitString = strings.Split(splitString[len(splitString)-1], "/")
-			numerator, _ := strconv.ParseFloat(splitString[len(splitString)-2], 64)
-			denominator, _ := strconv.ParseFloat(splitString[len(splitString)-1], 64)
-			dividedFPS := numerator / denominator
-			stats.FPS = dividedFPS
-		}
-		// Total bitrate
-		if strings.HasPrefix(line, "format.bit_rate") {
-			cleanedLine := strings.ReplaceAll(line, "\"", "")
-			splitString := strings.Split(cleanedLine, "=")
-			stats.Bitrate, _ = strconv.Atoi(splitString[len(splitString)-1])
-		}
-		// Duration
-		if strings.HasPrefix(line, "format.duration") {
-			cleanedLine := strings.ReplaceAll(line, "\"", "")
-			splitString := strings.Split(cleanedLine, "=")
-			stats.Duration, _ = strconv.ParseFloat(splitString[len(splitString)-1], 64)
-		}
-		// Pix_fmt
-		if strings.HasPrefix(line, "streams.stream.0.pix_fmt") {
-			cleanedLine := strings.ReplaceAll(line, "\"", "")
-			splitString := strings.Split(cleanedLine, "=")
-			stats.Pixfmt = splitString[len(splitString)-1]
-		}
-		// Codec name
-		if strings.HasPrefix(line, "streams.stream.0.codec_name") {
-			cleanedLine := strings.ReplaceAll(line, "\"", "")
-			splitString := strings.Split(cleanedLine, "=")
-			stats.VideoCodec = splitString[len(splitString)-1]
-		}
-		// Bitrate
-		if strings.HasPrefix(line, "streams.stream.0.bit_rate") {
-			cleanedLine := strings.ReplaceAll(line, "\"", "")
-			splitString := strings.Split(cleanedLine, "=")
-			if splitString[len(splitString)-1] == "N/A" {
-				stats.VideoBitrate = -1
-			} else {
-				stats.VideoBitrate, _ = strconv.Atoi(splitString[len(splitString)-1])
-			}
-		}
-	}
-
-	// Getting audio info
-	aprobe := exec.Command(
-		settings.General.FFprobeExecutable,
-		"-loglevel", "quiet",
-		"-of", "flat",
-		"-select_streams", "a",
-		"-show_entries", "stream=index:stream=codec_name:stream=bit_rate",
-		filepath,
-		)
-
-	pipe, err = aprobe.StdoutPipe()
+	err = json.Unmarshal(probe, &probeOutput)
 	if err != nil {
-		panic("Failed to start stdout pipe")
+		panic("Failed to parse JSON")
 	}
 
-	err = aprobe.Start()
-	if err != nil {
-		panic("Failed to start FFprobe")
+	// Video
+	videoStream := findFirstStream("video", probeOutput.Streams)
+	// FPS
+	fpsSplit := strings.Split(videoStream.Framerate, "/")
+	n1, _ := strconv.ParseFloat(fpsSplit[0], 64)
+	n2, _ := strconv.ParseFloat(fpsSplit[1], 64)
+	stats.FPS = n1 / n2
+	// Other
+	stats.Pixfmt = videoStream.Pixfmt
+	stats.Duration, _ = strconv.ParseFloat(probeOutput.Format.Duration, 64)
+	stats.Bitrate, _ = strconv.ParseFloat(probeOutput.Format.Bitrate, 64)
+	stats.VideoBitrate, _ = strconv.ParseFloat(videoStream.Bitrate, 64)
+	stats.VideoCodec = videoStream.CodecName
+	// Audio
+	stats.AudioTracks = countStreams("audio", probeOutput.Streams)
+	if stats.AudioTracks != 0 && !settings.MixTracks {
+		audioStream := findFirstStream("audio", probeOutput.Streams)
+		stats.AudioCodec = audioStream.CodecName
+		stats.AudioBitrate, _ = strconv.ParseFloat(audioStream.Bitrate, 64)
 	}
 
-	ascanner := bufio.NewScanner(pipe)
-	totalStreams := 0
-
-	for ascanner.Scan() {
-		line := ascanner.Text()
-		// Stream counter
-		if strings.HasPrefix(line, "streams.stream." + strconv.Itoa(totalStreams)) {
-			totalStreams += 1
-		}
-		// Codec name
-		if strings.HasPrefix(line, "streams.stream.0.codec_name") {
-			cleanedLine := strings.ReplaceAll(line, "\"", "")
-			splitString := strings.Split(cleanedLine, "=")
-			stats.AudioCodec = splitString[len(splitString)-1]
-		}
-		// Audio bitrate (not in mkv :/)
-		if strings.HasPrefix(line, "streams.stream.0.bit_rate") {
-			cleanedLine := strings.ReplaceAll(line, "\"", "")
-			splitString := strings.Split(cleanedLine, "=")
-			if splitString[len(splitString)-1] == "N/A" {
-				stats.AudioBitrate = -1
-			} else {
-				stats.AudioBitrate, _ = strconv.Atoi(splitString[len(splitString)-1])
-			}
-		}
-	}
-	if settings.Time != float64(0) {
-		stats.Duration = settings.Time
-	}
-	stats.AudioTracks = totalStreams
 	// Bitrates -> k
 	stats.Bitrate /= 1024
 	stats.VideoBitrate /= 1024
 	stats.AudioBitrate /= 1024
 	return stats
+}
+
+func findFirstStream(streamType string, streamList []Stream) Stream {
+	for i := range streamList {
+		if streamList[i].StreamType == streamType {
+			return streamList[i]
+		}
+	}
+	panic("Stream not found")
+}
+
+func countStreams(streamType string, streamList []Stream) int {
+	streamCount := 0
+	for i := range streamList {
+		if streamList[i].StreamType == streamType {
+			streamCount++
+		}
+	}
+	return streamCount
 }

@@ -52,7 +52,7 @@ func Encode(filename string, pass int) bool {
 		options = append (options,
 			"-c:v", settings.SelectedVEncoder.Encoder,
 			settings.SelectedVEncoder.PresetCmd, settings.SelectedSettings.Preset,
-			"-b:v", strconv.Itoa(settings.OutputTarget.VideoBitrate) + "k",
+			"-b:v", strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', -1, 64) + "k",
 			"-vsync", "cfr",
 		)
 		if settings.SelectedVEncoder.Options != "" {

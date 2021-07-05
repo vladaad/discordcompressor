@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func CheckStreamCompatibility(filename string, audioBitrateIn int) (audioCompatible bool, videoCompatible bool, audioBitrateOut int) {
+func CheckStreamCompatibility(filename string, audioBitrateIn float64) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
 	audioCompatible, videoCompatible = false, false
 	// If bitrate wasn't able to be analyzed, analyze it xd
 	if (settings.VideoStats.AudioBitrate == 0 || settings.VideoStats.VideoBitrate == 0) && settings.VideoStats.AudioTracks != 0 {

@@ -7,22 +7,22 @@ import (
 	"strconv"
 )
 
-func CalculateTarget(filename string, targetSize int) *settings.OutTarget {
+func CalculateTarget(filename string, targetSize float64) *settings.OutTarget {
 	target := new(settings.OutTarget)
 	// Total bitrate calc
-	settings.MaxTotalBitrate = int(float64(targetSize) / settings.VideoStats.Duration)
+	settings.MaxTotalBitrate = targetSize / settings.VideoStats.Duration
 	SelectEncoder(settings.MaxTotalBitrate)
 	if settings.MaxTotalBitrate > settings.Encoding.BitrateLimitMax {
 		settings.MaxTotalBitrate = 	settings.Encoding.BitrateLimitMax
 	}
 	if settings.MaxTotalBitrate < settings.Encoding.BitrateLimitMin {
-		maxLength := float64(targetSize) / float64(settings.Encoding.BitrateLimitMin)
+		maxLength := targetSize / settings.Encoding.BitrateLimitMin
 		log.Println("File too long! Maximum length: " + strconv.FormatFloat(maxLength, 'f', 1, 64) + " seconds")
 		os.Exit(0)
 	}
 	// Audio calc
 	if settings.VideoStats.AudioTracks != 0 {
-		target.AudioBitrate = int(float64(settings.MaxTotalBitrate) * (float64(settings.SelectedAEncoder.BitratePerc) / 100))
+		target.AudioBitrate = settings.MaxTotalBitrate * float64(settings.SelectedAEncoder.BitratePerc) / float64(100)
 		if target.AudioBitrate > settings.SelectedAEncoder.MaxBitrate {
 			target.AudioBitrate = settings.SelectedAEncoder.MaxBitrate
 		}
@@ -43,7 +43,7 @@ func CalculateTarget(filename string, targetSize int) *settings.OutTarget {
 		if settings.Debug {
 			log.Println("Audio passthrough: "  + strconv.FormatBool(target.AudioPassthrough))
 			if !target.AudioPassthrough {
-				log.Println("Target audio bitrate: " + strconv.Itoa(target.AudioBitrate) + "k")
+				log.Println("Target audio bitrate: " + strconv.FormatFloat(target.AudioBitrate, 'f', 1, 64) + "k")
 			}
 		}
 		target.VideoBitrate = settings.MaxTotalBitrate - target.AudioBitrate
@@ -54,7 +54,7 @@ func CalculateTarget(filename string, targetSize int) *settings.OutTarget {
 	if settings.Debug {
 		log.Println("Video passthrough: "  + strconv.FormatBool(target.VideoPassthrough))
 		if !target.VideoPassthrough {
-			log.Println("Target video bitrate: " + strconv.Itoa(target.VideoBitrate) + "k")
+			log.Println("Target video bitrate: " + strconv.FormatFloat(target.VideoBitrate, 'f', 1, 64) + "k")
 		}
 	}
 	return target

@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func EncodeAudio(filename string, bitrate int) int {
+func EncodeAudio(filename string, bitrate float64) float64 {
 	var options []string
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + ".audio." + settings.SelectedVEncoder.Container
 	encoderSettings := strings.Split(settings.SelectedAEncoder.Options, " ")
@@ -40,7 +40,7 @@ func EncodeAudio(filename string, bitrate int) int {
 	}
 	if settings.SelectedAEncoder.UsesBitrate {
 		options = append(options,
-			"-b:a", strconv.Itoa(bitrate) + "k",
+			"-b:a", strconv.FormatFloat(bitrate, 'f', -1, 64) + "k",
 		)
 	}
 

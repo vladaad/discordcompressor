@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func AnalyzeAudio(filename string) int {
+func AnalyzeAudio(filename string) float64 {
 	log.Println("Extracting audio for analysis...")
 	sFilename := strings.Split(filename, ".")
 	extension := sFilename[len(sFilename)-1]
