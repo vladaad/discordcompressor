@@ -33,7 +33,7 @@ func filters(pass int) string {
 		if pass == 1 {
 			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax))
 		} else {
-			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax) + ":flags=lanczos")
+			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax) + ":flags=bicubic")
 		}
 	}
 
