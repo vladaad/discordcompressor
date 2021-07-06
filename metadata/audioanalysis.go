@@ -30,7 +30,7 @@ func AnalyzeAudio(filename string) float64 {
 		panic(err)
 	}
 
-	bitrate := GetStats(outFilename).Bitrate
+	bitrate := GetStats(outFilename, true).Bitrate
 	os.Remove(outFilename)
 	return bitrate
 }

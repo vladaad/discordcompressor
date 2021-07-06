@@ -67,5 +67,5 @@ func EncodeAudio(filename string, bitrate float64) float64 {
 		panic(err)
 	}
 
-	return GetStats(outputFilename).Bitrate
+	return GetStats(outputFilename, true).Bitrate
 }

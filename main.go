@@ -62,7 +62,7 @@ func main() {
 
 	// Video analysis
 	log.Println("Analyzing video...")
-	settings.VideoStats = metadata.GetStats(*inputVideo)
+	settings.VideoStats = metadata.GetStats(*inputVideo, false)
 	if settings.Debug {
 		log.Println("Input stats:")
 		log.Println(strconv.Itoa(settings.VideoStats.Height) + "p " + strconv.FormatFloat(settings.VideoStats.FPS, 'f', -1, 64) + "fps")

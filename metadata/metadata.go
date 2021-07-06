@@ -28,7 +28,7 @@ type Format struct {
 	Bitrate string `json:"bit_rate"`
 }
 
-func GetStats(filepath string) *settings.VidStats {
+func GetStats(filepath string, audioonly bool) *settings.VidStats {
 	stats := new(settings.VidStats)
 	if _, err := os.Stat(filepath); err != nil {
 		panic(filepath + " doesn't exist")
@@ -38,7 +38,6 @@ func GetStats(filepath string) *settings.VidStats {
 		settings.General.FFprobeExecutable,
 		"-loglevel", "quiet",
 		"-of", "json",
-		"-select_streams", "v",
 		"-show_entries", "stream:format",
 		filepath,
 		).Output()
@@ -54,19 +53,20 @@ func GetStats(filepath string) *settings.VidStats {
 		panic("Failed to parse JSON")
 	}
 
-	// Video
-	videoStream := findFirstStream("video", probeOutput.Streams)
-	// FPS
-	fpsSplit := strings.Split(videoStream.Framerate, "/")
-	n1, _ := strconv.ParseFloat(fpsSplit[0], 64)
-	n2, _ := strconv.ParseFloat(fpsSplit[1], 64)
-	stats.FPS = n1 / n2
+	if !audioonly {
+		videoStream := findFirstStream("video", probeOutput.Streams)
+		stats.VideoBitrate, _ = strconv.ParseFloat(videoStream.Bitrate, 64)
+		stats.VideoCodec = videoStream.CodecName
+		stats.Pixfmt = videoStream.Pixfmt
+		// FPS
+		fpsSplit := strings.Split(videoStream.Framerate, "/")
+		n1, _ := strconv.ParseFloat(fpsSplit[0], 64)
+		n2, _ := strconv.ParseFloat(fpsSplit[1], 64)
+		stats.FPS = n1 / n2
+	}
 	// Other
-	stats.Pixfmt = videoStream.Pixfmt
 	stats.Duration, _ = strconv.ParseFloat(probeOutput.Format.Duration, 64)
 	stats.Bitrate, _ = strconv.ParseFloat(probeOutput.Format.Bitrate, 64)
-	stats.VideoBitrate, _ = strconv.ParseFloat(videoStream.Bitrate, 64)
-	stats.VideoCodec = videoStream.CodecName
 	// Audio
 	stats.AudioTracks = countStreams("audio", probeOutput.Streams)
 	if stats.AudioTracks != 0 && !settings.MixTracks {
