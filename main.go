@@ -34,6 +34,7 @@ func main() {
 	focus := flag.String("focus", "", "Sets the focus")
 	original := flag.Bool("noscale", false, "Disables FPS limiting and scaling")
 	mixTracks := flag.Bool("mixaudio", false, "Mixes all audio tracks into one")
+	dryRun := flag.Bool("dryrun", false, "Just prints commands instead of running")
 	flag.Parse()
 
 	// Settings loading
@@ -44,6 +45,7 @@ func main() {
 	settings.Original = *original
 	settings.Focus = *focus
 	settings.MixTracks = *mixTracks
+	settings.DryRun = *dryRun
 
 	// ;)
 	newSettings := settings.LoadSettings(*settingsFile)
@@ -63,6 +65,11 @@ func main() {
 	// Video analysis
 	log.Println("Analyzing video...")
 	settings.VideoStats = metadata.GetStats(*inputVideo, false)
+	// Checking time
+	if settings.Starttime + settings.Time > settings.VideoStats.Duration {
+		log.Println("Invalid length!")
+		os.Exit(0)
+	}
 	if settings.Debug {
 		log.Println("Input stats:")
 		log.Println(strconv.Itoa(settings.VideoStats.Height) + "p " + strconv.FormatFloat(settings.VideoStats.FPS, 'f', -1, 64) + "fps")

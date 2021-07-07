@@ -25,7 +25,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   7500,
 				Encoder:      "x264",
-				AudioEncoder: "aac2",
+				AudioEncoder: "aac",
 				Preset:       "fast",
 			}, {
 				Limits: []*Limits{
@@ -42,7 +42,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   5000,
 				Encoder:      "x264",
-				AudioEncoder: "aac2",
+				AudioEncoder: "aac",
 				Preset:       "medium",
 			}, {
 				Limits: []*Limits{
@@ -59,7 +59,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   3750,
 				Encoder:      "x264",
-				AudioEncoder: "aac2",
+				AudioEncoder: "aac",
 				Preset:       "slow",
 			}, {
 				Limits: []*Limits{
@@ -76,7 +76,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   2500,
 				Encoder:      "x264",
-				AudioEncoder: "aac2",
+				AudioEncoder: "aac",
 				Preset:       "slower",
 			}, {
 				Limits: []*Limits{
@@ -93,7 +93,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   1500,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.5",
+				AudioEncoder: "aac",
 				Preset:       "slower",
 			}, {
 				Limits: []*Limits{
@@ -110,7 +110,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   1000,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.5",
+				AudioEncoder: "aac",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -127,7 +127,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   650,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.1",
+				AudioEncoder: "aac",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -144,7 +144,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   400,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.1",
+				AudioEncoder: "aac",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -161,7 +161,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   0,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.1",
+				AudioEncoder: "aac",
 				Preset:       "veryslow",
 			},
 		},
@@ -181,32 +181,12 @@ func initEncoding() *encoding {
 		},
 		AudioEncoders: []*AudioEncoder{
 			{
-				Name:         "aac1.5",
+				Name:         "aac",
 				Encoder:      "aac",
 				CodecName:    "aac",
-				Options:      "-qscale:a 1.5",
-				UsesBitrate:  false,
-				MaxBitrate:   192,
-				MinBitrate:   128,
-				BitratePerc:  12,
-			},
-			{
-				Name:         "aac1.1",
-				Encoder:      "aac",
-				CodecName:    "aac",
-				Options:      "-qscale:a 1.1",
-				UsesBitrate:  false,
-				MaxBitrate:   192,
-				MinBitrate:   128,
-				BitratePerc:  12,
-			},
-			{
-				Name:         "aac2",
-				Encoder:      "aac",
-				CodecName:    "aac",
-				Options:      "-qscale:a 1.8",
-				UsesBitrate:  false,
-				MaxBitrate:   192,
+				Options:      "",
+				UsesBitrate:  true,
+				MaxBitrate:   256,
 				MinBitrate:   128,
 				BitratePerc:  12,
 			},

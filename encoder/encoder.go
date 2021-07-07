@@ -103,23 +103,25 @@ func Encode(filename string, pass int) bool {
 		options = append(options, "-f", "matroska", null) // -f null can break 2pass w/ mkv for whatever reason
 	}
 
-	if settings.Debug {
+	if settings.Debug || settings.DryRun {
 		log.Println(options)
 	}
 
 	// Execution
-	cmd := exec.Command(settings.General.FFmpegExecutable, options...)
+	if !settings.DryRun {
+		cmd := exec.Command(settings.General.FFmpegExecutable, options...)
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-	err := cmd.Start()
-	if err != nil {
-		panic(err)
-	}
-	err = cmd.Wait()
-	if err != nil {
-		panic(err)
+		err := cmd.Start()
+		if err != nil {
+			panic(err)
+		}
+		err = cmd.Wait()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return true

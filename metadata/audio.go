@@ -58,25 +58,34 @@ func EncodeAudio(filename string, bitrate float64) float64 {
 	// Output
 	options = append(options, outputFilename)
 
-	if settings.Debug {
+	if settings.Debug || settings.DryRun {
 		log.Println(options)
 	}
 
 	// Running
 
-	cmd := exec.Command(settings.General.FFmpegExecutable, options...)
+	if !settings.DryRun {
+		cmd := exec.Command(settings.General.FFmpegExecutable, options...)
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-	err := cmd.Start()
-	if err != nil {
+		err := cmd.Start()
+		if err != nil {
 		panic(err)
 	}
-	err = cmd.Wait()
-	if err != nil {
+		err = cmd.Wait()
+		if err != nil {
 		panic(err)
 	}
-
-	return GetStats(outputFilename, true).Bitrate
+	}
+	if settings.DryRun {
+		if bitrate != 0 {
+			return bitrate
+		} else {
+			return settings.SelectedAEncoder.MaxBitrate
+		}
+	} else {
+		return GetStats(outputFilename, true).Bitrate
+	}
 }
