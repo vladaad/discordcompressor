@@ -5,7 +5,7 @@ var Encoding = initEncoding()
 func initEncoding() *encoding {
 	return &encoding{
 		TmixDownFPS:         false,
-		HalveDownFPS:        true,
+		HalveDownFPS:        false,
 		SizeTargetMB:        8,
 		BitrateTargetMult:   1,
 		BitrateLimitMax:     12500,
