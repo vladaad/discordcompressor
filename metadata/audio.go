@@ -31,7 +31,6 @@ func EncodeAudio(filename string, bitrate float64) float64 {
 	options = append(options, "-i", filename)
 
 	// Encoding options
-	options = append(options, "-map", "0:a:0")
 	options = append(options,
 		"-c:a", settings.SelectedAEncoder.Encoder,
 	)
@@ -42,6 +41,18 @@ func EncodeAudio(filename string, bitrate float64) float64 {
 		options = append(options,
 			"-b:a", strconv.FormatFloat(bitrate, 'f', -1, 64) + "k",
 		)
+	}
+	// Track mixing
+	if settings.MixTracks && settings.VideoStats.AudioTracks > 1 {
+		var filter []string
+		for i := 0; i < settings.VideoStats.AudioTracks; i++ {
+			filter = append(filter, "[0:a:" + strconv.Itoa(i) + "]")
+		}
+		filter = append(filter, "amix=inputs=", strconv.Itoa(settings.VideoStats.AudioTracks))
+		filter = append(filter, "[out]")
+		options = append(options, "-filter_complex", strings.Join(filter, ""), "-map", "[out]")
+	} else {
+		options = append(options, "-map", "0:a:0")
 	}
 
 	// Output

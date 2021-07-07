@@ -73,17 +73,13 @@ func main() {
 			log.Println(settings.VideoStats.AudioCodec + ", " + strconv.FormatFloat(settings.VideoStats.AudioBitrate, 'f', 1, 64) + "k")
 		}
 	}
-	// Choosing target, audio encoding
-	settings.OutputTarget = metadata.CalculateTarget(*inputVideo, *targetSize * 8192)
-
 	// ss+t check
 	if settings.Starttime + settings.Time > settings.VideoStats.Duration {
 		log.Println("Invalid start or end time arguments!")
 		os.Exit(0)
 	}
-
-	// Total bitrate calc
-
+	// Choosing target, audio encoding
+	settings.OutputTarget = metadata.CalculateTarget(*inputVideo, *targetSize * 8192)
 
 	// Target select
 	metadata.SelectEncoder(settings.MaxTotalBitrate)
