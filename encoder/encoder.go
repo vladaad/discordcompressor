@@ -58,7 +58,7 @@ func Encode(filename string, pass int) bool {
 		if settings.SelectedVEncoder.Options != "" {
 			options = append(options, vEncoderOptions...)
 		}
-		options = append(options, "-g", strconv.FormatFloat(FPS * float64(settings.SelectedVEncoder.Keyint), 'f', -1, 64))
+		options = append(options, "-g", strconv.FormatFloat(FPS * float64(settings.SelectedVEncoder.Keyint), 'f', 0, 64))
 		// 2pass
 		if pass != 0 {
 			options = append(options, settings.SelectedVEncoder.PassCmd, strconv.Itoa(pass))
@@ -83,6 +83,7 @@ func Encode(filename string, pass int) bool {
 	} else {
 		options = append(options, "-an")
 	}
+	options = append(options, "-map_metadata", "-1")
 
 	// Faststart for MP4
 	if strings.ToLower(settings.SelectedVEncoder.Container) == "mp4" {
