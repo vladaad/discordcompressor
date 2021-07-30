@@ -36,6 +36,7 @@ func main() {
 	original := flag.Bool("noscale", false, "Disables FPS limiting and scaling")
 	mixTracks := flag.Bool("mixaudio", false, "Mixes all audio tracks into one")
 	dryRun := flag.Bool("dryrun", false, "Just prints commands instead of running")
+	reEncode := flag.String("reenc", "", "Re-encodes even when not needed. \"a\", \"v\" or \"av\"")
 	flag.Parse()
 
 	// Settings loading
@@ -48,6 +49,21 @@ func main() {
 	settings.MixTracks = *mixTracks
 	settings.DryRun = *dryRun
 
+	// Reenc
+	reEncA, reEncV := false, false
+	if !(*reEncode == "a" || *reEncode == "av" || *reEncode == "va" || *reEncode == "v" || *reEncode == "") {
+		log.Println("The re-encode argument must be \"a\", \"v\" or \"av\"/\"va\".")
+		os.Exit(0)
+	} else {
+		switch *reEncode {
+		case "av", "va":
+			reEncA, reEncV = true, true
+		case "v":
+			reEncV = true
+		case "a":
+			reEncA = true
+		}
+	}
 
 	// ;)
 	newSettings := settings.LoadSettings(*settingsFile)
@@ -96,6 +112,8 @@ func main() {
 	// AB calc & passthrough
 	t.AudioBitrate = metadata.CalcAudioBitrate(settings.MaxTotalBitrate)
 	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(*inputVideo, t.AudioBitrate)
+	if reEncA {t.AudioPassthrough = false}
+	if reEncV {t.VideoPassthrough = false}
 	// Audio encoding
 	if !t.AudioPassthrough && settings.VideoStats.AudioTracks != 0 {
 		log.Println("Encoding audio...")
