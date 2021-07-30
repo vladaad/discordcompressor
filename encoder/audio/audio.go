@@ -1,6 +1,7 @@
-package metadata
+package audio
 
 import (
+	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
 	"log"
 	"os"
@@ -14,7 +15,7 @@ func EncodeAudio(filename string, bitrate float64) float64 {
 	var options []string
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + ".audio." + settings.SelectedVEncoder.Container
 	encoderSettings := strings.Split(settings.SelectedAEncoder.Options, " ")
-	times := AppendTimes()
+	times := metadata.AppendTimes()
 
 	// Input options
 	if settings.Debug {
@@ -88,6 +89,6 @@ func EncodeAudio(filename string, bitrate float64) float64 {
 			return settings.SelectedAEncoder.MaxBitrate
 		}
 	} else {
-		return GetStats(outputFilename, true).Bitrate
+		return metadata.GetStats(outputFilename, true).Bitrate
 	}
 }

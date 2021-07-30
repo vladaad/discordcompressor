@@ -1,8 +1,6 @@
-package encoder
+package video
 
 import (
-	"github.com/vladaad/discordcompressor/metadata"
-	"github.com/vladaad/discordcompressor/settings"
 	"log"
 	"os"
 	"os/exec"
@@ -10,6 +8,9 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/vladaad/discordcompressor/metadata"
+	"github.com/vladaad/discordcompressor/settings"
 )
 
 var FPS float64
@@ -28,7 +29,7 @@ func Encode(filename string, pass int) bool {
 	} else {
 		options = append(options,
 			"-loglevel", "quiet", "-stats",
-			)
+		)
 	}
 	options = append(options,
 		"-y", "-hwaccel", settings.Decoding.HardwareAccel,
@@ -38,7 +39,7 @@ func Encode(filename string, pass int) bool {
 
 	// Audio append
 	if pass != 1 && settings.VideoStats.AudioTracks != 0 && !settings.OutputTarget.AudioPassthrough {
-		options = append(options, "-i", strings.TrimSuffix(filename, path.Ext(filename)) + ".audio." + settings.SelectedVEncoder.Container)
+		options = append(options, "-i", strings.TrimSuffix(filename, path.Ext(filename))+".audio."+settings.SelectedVEncoder.Container)
 	}
 
 	// Video filters
@@ -49,16 +50,16 @@ func Encode(filename string, pass int) bool {
 
 	// Video encoding options
 	if !settings.OutputTarget.VideoPassthrough {
-		options = append (options,
+		options = append(options,
 			"-c:v", settings.SelectedVEncoder.Encoder,
 			settings.SelectedVEncoder.PresetCmd, settings.SelectedSettings.Preset,
-			"-b:v", strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', -1, 64) + "k",
+			"-b:v", strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', -1, 64)+"k",
 			"-vsync", "vfr",
 		)
 		if settings.SelectedVEncoder.Options != "" {
 			options = append(options, vEncoderOptions...)
 		}
-		options = append(options, "-g", strconv.FormatFloat(FPS * float64(settings.SelectedVEncoder.Keyint), 'f', 0, 64))
+		options = append(options, "-g", strconv.FormatFloat(FPS*float64(settings.SelectedVEncoder.Keyint), 'f', 0, 64))
 		// 2pass
 		if pass != 0 {
 			options = append(options, settings.SelectedVEncoder.PassCmd, strconv.Itoa(pass))

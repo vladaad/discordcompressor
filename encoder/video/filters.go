@@ -1,4 +1,4 @@
-package encoder
+package video
 
 import (
 	"github.com/vladaad/discordcompressor/settings"

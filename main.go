@@ -3,7 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/vladaad/discordcompressor/encoder"
+	"github.com/vladaad/discordcompressor/encoder/audio"
+	"github.com/vladaad/discordcompressor/encoder/video"
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
 	"io"
@@ -47,6 +48,7 @@ func main() {
 	settings.MixTracks = *mixTracks
 	settings.DryRun = *dryRun
 
+
 	// ;)
 	newSettings := settings.LoadSettings(*settingsFile)
 	if *inputVideo == "" && !newSettings {
@@ -61,6 +63,7 @@ func main() {
 	if *targetSize == float64(-1) {
 		*targetSize = settings.Encoding.SizeTargetMB
 	}
+	targetSizeKbit := *targetSize * 8192
 
 	// Video analysis
 	log.Println("Analyzing video...")
@@ -85,23 +88,42 @@ func main() {
 			log.Println(settings.VideoStats.AudioCodec + ", " + strconv.FormatFloat(settings.VideoStats.AudioBitrate, 'f', 1, 64) + "k")
 		}
 	}
-	// Choosing target, audio encoding
-	settings.OutputTarget = metadata.CalculateTarget(*inputVideo, *targetSize * 8192)
-
+	// Total bitrate calc
+	settings.MaxTotalBitrate = targetSizeKbit / settings.VideoStats.Duration
+	// Choosing target
+	metadata.SelectEncoder(settings.MaxTotalBitrate)
+	t := new(settings.OutTarget)
+	// AB calc & passthrough
+	t.AudioBitrate = metadata.CalcAudioBitrate(settings.MaxTotalBitrate)
+	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(*inputVideo, t.AudioBitrate)
+	// Audio encoding
+	if !t.AudioPassthrough && settings.VideoStats.AudioTracks != 0 {
+		log.Println("Encoding audio...")
+		t.AudioBitrate = audio.EncodeAudio(*inputVideo, t.AudioBitrate)
+	} else if !t.AudioPassthrough {
+		t.AudioBitrate = 0
+	}
 	// Video bitrate calc
+	t.VideoBitrate = settings.MaxTotalBitrate - t.AudioBitrate
+	settings.OutputTarget = t
+	// Debug
 	if settings.Debug {
 		log.Println("Calculated target bitrate: " + strconv.FormatFloat(settings.MaxTotalBitrate, 'f', 1, 64) + "k")
+		if settings.VideoStats.AudioTracks != 0 {
+			log.Println("Calculated video bitrate: " + strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', 1, 64) + "k")
+			log.Println("Calculated audio bitrate: " + strconv.FormatFloat(settings.OutputTarget.AudioBitrate, 'f', 1, 64) + "k")
+		}
 	}
 
 	// Encode
 	if settings.SelectedVEncoder.TwoPass && !settings.OutputTarget.VideoPassthrough {
 		log.Println("Encoding, pass 1/2")
-		encoder.Encode(*inputVideo, 1)
+		video.Encode(*inputVideo, 1)
 		log.Println("Encoding, pass 2/2")
-		encoder.Encode(*inputVideo, 2)
+		video.Encode(*inputVideo, 2)
 	} else {
 		log.Println("Encoding, pass 1/1")
-		encoder.Encode(*inputVideo, 0)
+		video.Encode(*inputVideo, 0)
 	}
 	log.Println("Cleaning up...")
 	os.Remove("ffmpeg2pass-0.log")
