@@ -70,6 +70,11 @@ func main() {
 		log.Println("Invalid length!")
 		os.Exit(0)
 	}
+	if settings.Time != 0 {
+		settings.VideoStats.Duration = settings.Time
+	} else if settings.Starttime != 0 {
+		settings.VideoStats.Duration = settings.VideoStats.Duration - settings.Starttime
+	}
 	if settings.Debug {
 		log.Println("Input stats:")
 		log.Println(strconv.Itoa(settings.VideoStats.Height) + "p " + strconv.FormatFloat(settings.VideoStats.FPS, 'f', -1, 64) + "fps")

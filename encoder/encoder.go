@@ -84,6 +84,7 @@ func Encode(filename string, pass int) bool {
 		options = append(options, "-an")
 	}
 	options = append(options, "-map_metadata", "-1")
+	options = append(options, "-map_chapters", "-1")
 
 	// Faststart for MP4
 	if strings.ToLower(settings.SelectedVEncoder.Container) == "mp4" {

@@ -31,9 +31,9 @@ func filters(pass int) string {
 	// Resolution
 	if settings.SelectedLimits.VResMax < settings.VideoStats.Height {
 		if pass == 1 {
-			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax))
+			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax) + ":flags=bilinear")
 		} else {
-			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax) + ":flags=bicubic")
+			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax) + ":flags=lanczos")
 		}
 	}
 

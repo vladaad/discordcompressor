@@ -55,6 +55,7 @@ func EncodeAudio(filename string, bitrate float64) float64 {
 		options = append(options, "-map", "0:a:0")
 	}
 	options = append(options, "-map_metadata", "-1")
+	options = append(options, "-map_chapters", "-1")
 
 	// Output
 	options = append(options, outputFilename)

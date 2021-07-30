@@ -10,7 +10,7 @@ import (
 func CalculateTarget(filename string, targetSize float64) *settings.OutTarget {
 	target := new(settings.OutTarget)
 	// Total bitrate calc
-	settings.MaxTotalBitrate = targetSize / settings.Time
+	settings.MaxTotalBitrate = targetSize / settings.VideoStats.Duration
 	SelectEncoder(settings.MaxTotalBitrate)
 	if settings.MaxTotalBitrate > settings.Encoding.BitrateLimitMax {
 		settings.MaxTotalBitrate = 	settings.Encoding.BitrateLimitMax
