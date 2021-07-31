@@ -1,6 +1,8 @@
 package video
 
 import (
+	"github.com/vladaad/discordcompressor/metadata"
+	"github.com/vladaad/discordcompressor/settings"
 	"log"
 	"os"
 	"os/exec"
@@ -8,14 +10,11 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-
-	"github.com/vladaad/discordcompressor/metadata"
-	"github.com/vladaad/discordcompressor/settings"
 )
 
 var FPS float64
 
-func Encode(filename string, pass int) bool {
+func Encode(filename string, pass int, audio bool) bool {
 	var options []string
 	// Vars
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + settings.SelectedVEncoder.Container
@@ -38,8 +37,8 @@ func Encode(filename string, pass int) bool {
 	options = append(options, "-i", filename)
 
 	// Audio append
-	if pass != 1 && settings.VideoStats.AudioTracks != 0 && !settings.OutputTarget.AudioPassthrough {
-		options = append(options, "-i", strings.TrimSuffix(filename, path.Ext(filename))+".audio."+settings.SelectedVEncoder.Container)
+	if audio {
+		options = append(options, "-i", settings.AudioFile)
 	}
 
 	// Video filters
@@ -74,15 +73,15 @@ func Encode(filename string, pass int) bool {
 	options = append(options,
 		"-map", "0:v:0",
 	)
-	if pass != 1 && settings.VideoStats.AudioTracks != 0 {
-		if settings.OutputTarget.AudioPassthrough {
-			options = append(options, "-map", "0:a:0")
-		} else {
-			options = append(options, "-map", "1:a:0")
-		}
-		options = append(options, "-c:a", "copy")
+	if settings.OutputTarget.AudioPassthrough {
+		options = append(options, "-map", "0:a:0")
+	} else if audio {
+		options = append(options, "-map", "1:a:0")
 	} else {
 		options = append(options, "-an")
+	}
+	if settings.OutputTarget.AudioPassthrough || audio {
+		options = append(options, "-c:a", "copy")
 	}
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")

@@ -39,6 +39,7 @@ var VideoStats *VidStats
 var OutputTarget *OutTarget
 var MixTracks bool
 var InputVideo string
+var AudioFile string
 var Debug bool
 var Focus string
 var Original bool
