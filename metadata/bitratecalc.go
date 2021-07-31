@@ -15,9 +15,3 @@ func CalcAudioBitrate(targetBitrate float64) float64 {
 	}
 	return AudioBitrate
 }
-
-func CalcVideoBitrate(targetBitrate float64, audioBitrate float64) float64 {
-	// Video calc
-	VideoBitrate := targetBitrate - audioBitrate
-	return VideoBitrate
-}
