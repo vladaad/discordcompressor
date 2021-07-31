@@ -11,10 +11,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"runtime"
 	"strconv"
-	"strings"
 )
 
 func main() {
@@ -105,7 +103,7 @@ func main() {
 		}
 	}
 	// Total bitrate calc
-	settings.MaxTotalBitrate = targetSizeKbit / settings.VideoStats.Duration
+	settings.MaxTotalBitrate = metadata.CalcTotalBitrate(targetSizeKbit)
 	// Choosing target
 	metadata.SelectEncoder(settings.MaxTotalBitrate)
 	t := new(settings.OutTarget)
@@ -148,7 +146,7 @@ func main() {
 	log.Println("Cleaning up...")
 	os.Remove("ffmpeg2pass-0.log")
 	os.Remove("ffmpeg2pass-0.log.mbtree")
-	os.Remove(strings.TrimSuffix(settings.InputVideo, path.Ext(settings.InputVideo)) + ".audio." + settings.SelectedVEncoder.Container)
+	os.Remove(settings.AudioFile)
 	log.Println("Finished!")
 }
 

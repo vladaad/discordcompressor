@@ -17,6 +17,8 @@ func EncodeAudio (inFilename string, inBitrate float64) (outBitrate float64, out
 	case "ffmpeg":
 		outFilename = outFilenameBase + settings.SelectedVEncoder.Container
 		encFFmpeg(inFilename, outFilename, inBitrate)
+	case "qaac":
+		outFilename = encQaac(inFilename, inBitrate)
 	default:
 		log.Println("Encoder type " + settings.SelectedAEncoder.Type + " not found")
 		os.Exit(0)
