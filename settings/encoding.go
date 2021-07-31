@@ -182,6 +182,7 @@ func initEncoding() *encoding {
 		AudioEncoders: []*AudioEncoder{
 			{
 				Name:         "aac",
+				Type:         "ffmpeg",
 				Encoder:      "aac",
 				CodecName:    "aac",
 				Options:      "",
@@ -235,6 +236,7 @@ type Encoder struct {
 
 type AudioEncoder struct {
 	Name         string
+	Type         string
 	Encoder      string
 	CodecName    string
 	Options      string

@@ -11,10 +11,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"runtime"
 	"strconv"
-	"strings"
 )
 
 func main() {
@@ -105,11 +103,12 @@ func main() {
 		}
 	}
 	// Total bitrate calc
-	settings.MaxTotalBitrate = targetSizeKbit / settings.VideoStats.Duration
+	settings.MaxTotalBitrate = metadata.CalcTotalBitrate(targetSizeKbit)
 	// Choosing target
 	metadata.SelectEncoder(settings.MaxTotalBitrate)
 	t := new(settings.OutTarget)
 	// AB calc & passthrough
+	hasAudio := true
 	t.AudioBitrate = metadata.CalcAudioBitrate(settings.MaxTotalBitrate)
 	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(*inputVideo, t.AudioBitrate)
 	if reEncA {t.AudioPassthrough = false}
@@ -117,9 +116,10 @@ func main() {
 	// Audio encoding
 	if !t.AudioPassthrough && settings.VideoStats.AudioTracks != 0 {
 		log.Println("Encoding audio...")
-		t.AudioBitrate = audio.EncodeAudio(*inputVideo, t.AudioBitrate)
+		t.AudioBitrate, settings.AudioFile = audio.EncodeAudio(*inputVideo, t.AudioBitrate)
 	} else if !t.AudioPassthrough {
 		t.AudioBitrate = 0
+		hasAudio = false
 	}
 	// Video bitrate calc
 	t.VideoBitrate = settings.MaxTotalBitrate - t.AudioBitrate
@@ -136,17 +136,17 @@ func main() {
 	// Encode
 	if settings.SelectedVEncoder.TwoPass && !settings.OutputTarget.VideoPassthrough {
 		log.Println("Encoding, pass 1/2")
-		video.Encode(*inputVideo, 1)
+		video.Encode(*inputVideo, 1, false)
 		log.Println("Encoding, pass 2/2")
-		video.Encode(*inputVideo, 2)
+		video.Encode(*inputVideo, 2, hasAudio)
 	} else {
 		log.Println("Encoding, pass 1/1")
-		video.Encode(*inputVideo, 0)
+		video.Encode(*inputVideo, 0, hasAudio)
 	}
 	log.Println("Cleaning up...")
 	os.Remove("ffmpeg2pass-0.log")
 	os.Remove("ffmpeg2pass-0.log.mbtree")
-	os.Remove(strings.TrimSuffix(settings.InputVideo, path.Ext(settings.InputVideo)) + ".audio." + settings.SelectedVEncoder.Container)
+	os.Remove(settings.AudioFile)
 	log.Println("Finished!")
 }
 
