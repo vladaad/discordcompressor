@@ -32,7 +32,7 @@ func encQaac(inFilename string, bitrate float64) string {
 
 	// Running
 	if !settings.DryRun {
-		cmd := exec.Command("qaac64", options...)
+		cmd := exec.Command(settings.General.QaacExecutable, options...)
 
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
