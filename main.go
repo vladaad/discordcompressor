@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/kardianos/osext"
 	"github.com/vladaad/discordcompressor/encoder/audio"
 	"github.com/vladaad/discordcompressor/encoder/video"
 	"github.com/vladaad/discordcompressor/metadata"
@@ -15,7 +16,9 @@ import (
 
 func main() {
 	// Log setup
-	file, err := os.Create("dcomp.log")
+	logFileName, _ := osext.ExecutableFolder()
+	logFileName += "/dcomp.log"
+	file, err := os.Create(logFileName)
 	if err != nil {
 		panic(err)
 	}
