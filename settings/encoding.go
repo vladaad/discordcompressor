@@ -4,7 +4,6 @@ var Encoding = initEncoding()
 
 func initEncoding() *encoding {
 	return &encoding{
-		TmixDownFPS:         false,
 		HalveDownFPS:        false,
 		SizeTargetMB:        8,
 		BitrateTargetMult:   1,
@@ -196,7 +195,6 @@ func initEncoding() *encoding {
 	}
 
 type encoding struct {
-	TmixDownFPS           bool
 	HalveDownFPS          bool
 	SizeTargetMB          float64
 	BitrateTargetMult     float64
