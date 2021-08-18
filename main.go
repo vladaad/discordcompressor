@@ -2,16 +2,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/vladaad/discordcompressor/encoder/audio"
 	"github.com/vladaad/discordcompressor/encoder/video"
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
+	"github.com/vladaad/discordcompressor/utils"
 	"io"
 	"log"
 	"os"
-	"os/exec"
-	"runtime"
 	"strconv"
 )
 
@@ -66,7 +64,7 @@ func main() {
 	// ;)
 	newSettings := settings.LoadSettings(*settingsFile)
 	if *inputVideo == "" && !newSettings {
-		OpenURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+		utils.OpenURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 	}
 
 	if *inputVideo == "" {
@@ -148,22 +146,4 @@ func main() {
 	os.Remove("ffmpeg2pass-0.log.mbtree")
 	os.Remove(settings.AudioFile)
 	log.Println("Finished!")
-}
-
-func OpenURL(url string) {
-	var err error
-
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
 }
