@@ -52,6 +52,7 @@ func encFFmpeg(inFilename string, outFilename string, bitrate float64) {
 			"-b:a", strconv.FormatFloat(bitrate, 'f', -1, 64) + "k",
 		)
 	}
+	options = append(options, "-map", "0:a:0")
 
 	// Output
 	options = append(options, outFilename)
