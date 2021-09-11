@@ -32,8 +32,10 @@ func filters(pass int) string {
 		}
 	}
 
-	filters = append(filters, fpsfilters...)
-	filters = append(filters, resfilters...)
+	if !settings.Original {
+		filters = append(filters, fpsfilters...)
+		filters = append(filters, resfilters...)
+	}
 
 	// Yuv420p conversion
 	if settings.VideoStats.Pixfmt != settings.SelectedVEncoder.Pixfmt {

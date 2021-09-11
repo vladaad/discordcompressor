@@ -43,7 +43,7 @@ func Encode(filename string, pass int, audio bool) bool {
 
 	// Video filters
 	filters := filters(pass)
-	if settings.Original == false && filters != "" {
+	if filters != "" {
 		options = append(options, "-vf", filters)
 	}
 
