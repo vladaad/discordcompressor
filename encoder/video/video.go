@@ -1,4 +1,4 @@
-package encoder
+package video
 
 import (
 	"github.com/vladaad/discordcompressor/metadata"
@@ -14,7 +14,7 @@ import (
 
 var FPS float64
 
-func Encode(filename string, pass int) bool {
+func Encode(filename string, pass int, audio bool) bool {
 	var options []string
 	// Vars
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + settings.SelectedVEncoder.Container
@@ -28,7 +28,7 @@ func Encode(filename string, pass int) bool {
 	} else {
 		options = append(options,
 			"-loglevel", "quiet", "-stats",
-			)
+		)
 	}
 	options = append(options,
 		"-y", "-hwaccel", settings.Decoding.HardwareAccel,
@@ -37,28 +37,28 @@ func Encode(filename string, pass int) bool {
 	options = append(options, "-i", filename)
 
 	// Audio append
-	if pass != 1 && settings.VideoStats.AudioTracks != 0 && !settings.OutputTarget.AudioPassthrough {
-		options = append(options, "-i", strings.TrimSuffix(filename, path.Ext(filename)) + ".audio." + settings.SelectedVEncoder.Container)
+	if audio && !settings.OutputTarget.AudioPassthrough {
+		options = append(options, "-i", settings.AudioFile)
 	}
 
 	// Video filters
 	filters := filters(pass)
-	if settings.Original == false && filters != "" {
+	if filters != "" {
 		options = append(options, "-vf", filters)
 	}
 
 	// Video encoding options
 	if !settings.OutputTarget.VideoPassthrough {
-		options = append (options,
+		options = append(options,
 			"-c:v", settings.SelectedVEncoder.Encoder,
 			settings.SelectedVEncoder.PresetCmd, settings.SelectedSettings.Preset,
-			"-b:v", strconv.Itoa(settings.OutputTarget.VideoBitrate) + "k",
-			"-vsync", "cfr",
+			"-b:v", strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', -1, 64)+"k",
+			"-vsync", "vfr",
 		)
 		if settings.SelectedVEncoder.Options != "" {
 			options = append(options, vEncoderOptions...)
 		}
-		options = append(options, "-g", strconv.FormatFloat(FPS * float64(settings.SelectedVEncoder.Keyint), 'f', -1, 64))
+		options = append(options, "-g", strconv.FormatFloat(FPS*float64(settings.SelectedVEncoder.Keyint), 'f', 0, 64))
 		// 2pass
 		if pass != 0 {
 			options = append(options, settings.SelectedVEncoder.PassCmd, strconv.Itoa(pass))
@@ -73,16 +73,18 @@ func Encode(filename string, pass int) bool {
 	options = append(options,
 		"-map", "0:v:0",
 	)
-	if pass != 1 && settings.VideoStats.AudioTracks != 0 {
-		if settings.OutputTarget.AudioPassthrough {
-			options = append(options, "-map", "0:a:0")
-		} else {
-			options = append(options, "-map", "1:a:0")
-		}
-		options = append(options, "-c:a", "copy")
+	if settings.OutputTarget.AudioPassthrough {
+		options = append(options, "-map", "0:a:0")
+	} else if audio {
+		options = append(options, "-map", "1:a:0")
 	} else {
 		options = append(options, "-an")
 	}
+	if settings.OutputTarget.AudioPassthrough || audio {
+		options = append(options, "-c:a", "copy")
+	}
+	options = append(options, "-map_metadata", "-1")
+	options = append(options, "-map_chapters", "-1")
 
 	// Faststart for MP4
 	if strings.ToLower(settings.SelectedVEncoder.Container) == "mp4" {
@@ -103,23 +105,25 @@ func Encode(filename string, pass int) bool {
 		options = append(options, "-f", "matroska", null) // -f null can break 2pass w/ mkv for whatever reason
 	}
 
-	if settings.Debug {
+	if settings.Debug || settings.DryRun {
 		log.Println(options)
 	}
 
 	// Execution
-	cmd := exec.Command(settings.General.FFmpegExecutable, options...)
+	if !settings.DryRun {
+		cmd := exec.Command(settings.General.FFmpegExecutable, options...)
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 
-	err := cmd.Start()
-	if err != nil {
-		panic(err)
-	}
-	err = cmd.Wait()
-	if err != nil {
-		panic(err)
+		err := cmd.Start()
+		if err != nil {
+			panic(err)
+		}
+		err = cmd.Wait()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return true

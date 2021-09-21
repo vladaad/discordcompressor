@@ -6,14 +6,12 @@ func initGeneral() *general {
 	return &general{
 		FFmpegExecutable:    "ffmpeg",
 		FFprobeExecutable:   "ffprobe",
-		UseCustomOutputDir:  false,
-		CustomOutputDir:     "",
+		QaacExecutable:      "qaac64",
 	}
 }
 
 type general struct {
 	FFmpegExecutable    string
 	FFprobeExecutable   string
-	UseCustomOutputDir  bool
-	CustomOutputDir     string
+	QaacExecutable      string
 }

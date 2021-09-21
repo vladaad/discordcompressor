@@ -4,7 +4,7 @@ import (
 	"github.com/vladaad/discordcompressor/settings"
 )
 
-func SelectEncoder (bitrate int) bool {
+func SelectEncoder (bitrate float64) bool {
 	for i := range settings.Encoding.BitrateTargets {
 		if settings.Encoding.BitrateTargets[i].BitrateMin < bitrate {
 			settings.SelectedSettings = settings.Encoding.BitrateTargets[i]

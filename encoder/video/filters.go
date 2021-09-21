@@ -1,4 +1,4 @@
-package encoder
+package video
 
 import (
 	"github.com/vladaad/discordcompressor/settings"
@@ -20,27 +20,19 @@ func filters(pass int) string {
 		} else {
 			FPS = float64(settings.SelectedLimits.FPSMax)
 		}
-		if settings.Encoding.TmixDownFPS && pass != 1 {
-			frames := settings.VideoStats.FPS / FPS
-			if frames < 2 {frames = 2}
-			fpsfilters = append(fpsfilters, "tmix=frames=" + strconv.FormatFloat(frames, 'f', 0, 64))
-		}
 		fpsfilters = append(fpsfilters, "fps=" + strconv.FormatFloat(FPS, 'f', -1, 64))
 	}
 
 	// Resolution
 	if settings.SelectedLimits.VResMax < settings.VideoStats.Height {
 		if pass == 1 {
-			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax))
+			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax) + ":flags=bilinear")
 		} else {
 			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(settings.SelectedLimits.VResMax) + ":flags=lanczos")
 		}
 	}
 
-	if settings.Encoding.TmixDownFPS && pass != 1 {
-		filters = append(filters, resfilters...)
-		filters = append(filters, fpsfilters...)
-	} else {
+	if !settings.Original {
 		filters = append(filters, fpsfilters...)
 		filters = append(filters, resfilters...)
 	}

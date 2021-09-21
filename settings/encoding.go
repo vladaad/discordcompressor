@@ -4,8 +4,7 @@ var Encoding = initEncoding()
 
 func initEncoding() *encoding {
 	return &encoding{
-		TmixDownFPS:         false,
-		HalveDownFPS:        true,
+		HalveDownFPS:        false,
 		SizeTargetMB:        8,
 		BitrateTargetMult:   1,
 		BitrateLimitMax:     12500,
@@ -25,8 +24,8 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   7500,
 				Encoder:      "x264",
-				AudioEncoder: "aac2",
-				Preset:       "medium",
+				AudioEncoder: "aac",
+				Preset:       "fast",
 			}, {
 				Limits: []*Limits{
 					{
@@ -42,8 +41,8 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   5000,
 				Encoder:      "x264",
-				AudioEncoder: "aac2",
-				Preset:       "slow",
+				AudioEncoder: "aac",
+				Preset:       "medium",
 			}, {
 				Limits: []*Limits{
 					{
@@ -59,8 +58,8 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   3750,
 				Encoder:      "x264",
-				AudioEncoder: "aac2",
-				Preset:       "slower",
+				AudioEncoder: "aac",
+				Preset:       "slow",
 			}, {
 				Limits: []*Limits{
 					{
@@ -76,8 +75,8 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   2500,
 				Encoder:      "x264",
-				AudioEncoder: "aac2",
-				Preset:       "veryslow",
+				AudioEncoder: "aac",
+				Preset:       "slower",
 			}, {
 				Limits: []*Limits{
 					{
@@ -93,8 +92,8 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   1500,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.5",
-				Preset:       "veryslow",
+				AudioEncoder: "aac",
+				Preset:       "slower",
 			}, {
 				Limits: []*Limits{
 					{
@@ -110,7 +109,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   1000,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.5",
+				AudioEncoder: "aac",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -127,7 +126,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   650,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.1",
+				AudioEncoder: "aac",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -144,7 +143,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   400,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.1",
+				AudioEncoder: "aac",
 				Preset:       "veryslow",
 			}, {
 				Limits: []*Limits{
@@ -161,7 +160,7 @@ func initEncoding() *encoding {
 				},
 				BitrateMin:   0,
 				Encoder:      "x264",
-				AudioEncoder: "aac1.1",
+				AudioEncoder: "aac",
 				Preset:       "veryslow",
 			},
 		},
@@ -171,7 +170,7 @@ func initEncoding() *encoding {
 				Encoder:      "libx264",
 				CodecName:    "h264",
 				Pixfmt:       "yuv420p",
-				Options:      "-x264-params qpmin=20",
+				Options:      "",
 				Keyint:       10,
 				PresetCmd:    "-preset",
 				TwoPass:      true,
@@ -181,46 +180,26 @@ func initEncoding() *encoding {
 		},
 		AudioEncoders: []*AudioEncoder{
 			{
-				Name:         "aac1.5",
+				Name:         "aac",
+				Type:         "ffmpeg",
 				Encoder:      "aac",
 				CodecName:    "aac",
-				Options:      "-qscale:a 1.5",
-				UsesBitrate:  false,
+				Options:      "",
+				UsesBitrate:  true,
 				MaxBitrate:   192,
-				MinBitrate:   128,
-				BitratePerc:  12,
-			},
-			{
-				Name:         "aac1.1",
-				Encoder:      "aac",
-				CodecName:    "aac",
-				Options:      "-qscale:a 1.1",
-				UsesBitrate:  false,
-				MaxBitrate:   192,
-				MinBitrate:   128,
-				BitratePerc:  12,
-			},
-			{
-				Name:         "aac2",
-				Encoder:      "aac",
-				CodecName:    "aac",
-				Options:      "-qscale:a 2",
-				UsesBitrate:  false,
-				MaxBitrate:   192,
-				MinBitrate:   128,
-				BitratePerc:  12,
+				MinBitrate:   112,
+				BitratePerc:  10,
 			},
 		},
 	}
 	}
 
 type encoding struct {
-	TmixDownFPS           bool
 	HalveDownFPS          bool
 	SizeTargetMB          float64
 	BitrateTargetMult     float64
-	BitrateLimitMax       int
-	BitrateLimitMin       int
+	BitrateLimitMax       float64
+	BitrateLimitMin       float64
 	BitrateTargets        []*Target
 	Encoders              []*Encoder
 	AudioEncoders         []*AudioEncoder
@@ -228,7 +207,7 @@ type encoding struct {
 
 type Target struct {
 	Limits       []*Limits
-	BitrateMin   int
+	BitrateMin   float64
 	Encoder      string
 	AudioEncoder string
 	Preset       string
@@ -255,11 +234,12 @@ type Encoder struct {
 
 type AudioEncoder struct {
 	Name         string
+	Type         string
 	Encoder      string
 	CodecName    string
 	Options      string
 	UsesBitrate  bool
-	MaxBitrate   int
-	MinBitrate   int
+	MaxBitrate   float64
+	MinBitrate   float64
 	BitratePerc  int
 }

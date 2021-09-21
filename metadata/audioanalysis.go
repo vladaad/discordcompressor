@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func AnalyzeAudio(filename string) int {
+func AnalyzeAudio(filename string) float64 {
 	log.Println("Extracting audio for analysis...")
 	sFilename := strings.Split(filename, ".")
 	extension := sFilename[len(sFilename)-1]
@@ -30,7 +30,7 @@ func AnalyzeAudio(filename string) int {
 		panic(err)
 	}
 
-	bitrate := GetStats(outFilename).Bitrate
+	bitrate := GetStats(outFilename, true).Bitrate
 	os.Remove(outFilename)
 	return bitrate
 }
