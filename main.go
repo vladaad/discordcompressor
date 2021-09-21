@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/kardianos/osext"
+	"github.com/vladaad/discordcompressor/build"
 	"github.com/vladaad/discordcompressor/encoder/audio"
 	"github.com/vladaad/discordcompressor/encoder/video"
 	"github.com/vladaad/discordcompressor/metadata"
@@ -23,6 +24,8 @@ func main() {
 		panic(err)
 	}
 	log.SetOutput(io.MultiWriter(os.Stdout, file))
+	// Version print
+	log.Println("Starting discordcompressor version " + build.VERSION)
 
 	// Parsing flags
 	settingsFile := flag.String("settings", "", "Selects the settings file to be used")
