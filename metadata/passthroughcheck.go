@@ -34,7 +34,7 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64) (audioCom
 	// Video bitrate must be detected
 	// Audio should be passed through too
 	// Video bitrate must be below total bitrate
-	if settings.SelectedVEncoder.CodecName == settings.VideoStats.VideoCodec && (settings.VideoStats.Pixfmt == "yuv420p" || settings.VideoStats.Pixfmt == "yuv420p10le" || settings.VideoStats.Pixfmt == settings.SelectedVEncoder.Pixfmt) {
+	if settings.SelectedVEncoder.CodecName == settings.VideoStats.VideoCodec && (settings.VideoStats.Pixfmt == "yuv420p" || settings.VideoStats.Pixfmt == settings.SelectedVEncoder.Pixfmt) {
 		if audioCompatible && settings.MaxTotalBitrate < settings.VideoStats.Bitrate {
 			videoCompatible = true
 		} else if settings.VideoStats.VideoBitrate < settings.MaxTotalBitrate - audioBitrateIn {
