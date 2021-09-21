@@ -15,7 +15,7 @@ type StreamList struct {
 }
 
 type Stream struct {
-	CodecName string `json:"streams"`
+	CodecName string `json:"codec_name"`
 	StreamType string `json:"codec_type"`
 	Height int `json:"height"`
 	Pixfmt string `json:"pix_fmt"`

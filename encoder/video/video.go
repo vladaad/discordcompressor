@@ -37,7 +37,7 @@ func Encode(filename string, pass int, audio bool) bool {
 	options = append(options, "-i", filename)
 
 	// Audio append
-	if audio {
+	if audio && !settings.OutputTarget.AudioPassthrough {
 		options = append(options, "-i", settings.AudioFile)
 	}
 
