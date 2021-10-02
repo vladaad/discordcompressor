@@ -9,7 +9,6 @@ type fileformat struct {
 }
 
 var MixTracks bool
-var AudioFile string
 var Debug bool
 var Focus string
 var Original bool

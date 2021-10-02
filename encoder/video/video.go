@@ -21,7 +21,7 @@ type OutTarget struct {
 
 var FPS float64
 
-func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget,  startingTime float64, totalTime float64) bool {
+func Encode(filename string, audioFilename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget, startingTime float64, totalTime float64) bool {
 	var options []string
 	// Vars
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + eOptions.Container
@@ -45,7 +45,7 @@ func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats
 
 	// Audio append
 	if audio && !oTarget.AudioPassthrough {
-		options = append(options, "-i", settings.AudioFile)
+		options = append(options, "-i", audioFilename)
 	}
 
 	// Video filters
