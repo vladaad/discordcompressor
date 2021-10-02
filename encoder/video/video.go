@@ -14,11 +14,11 @@ import (
 
 var FPS float64
 
-func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats, startingTime float64, totalTime float64) bool {
+func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, startingTime float64, totalTime float64) bool {
 	var options []string
 	// Vars
-	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + settings.SelectedVEncoder.Container
-	vEncoderOptions := strings.Split(settings.SelectedVEncoder.Options, " ")
+	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + eOptions.Container
+	vEncoderOptions := strings.Split(eOptions.Options, " ")
 	times := metadata.AppendTimes(startingTime, totalTime)
 	// Command
 	if settings.Debug {
@@ -42,7 +42,7 @@ func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats
 	}
 
 	// Video filters
-	filters := filters(pass, videoStats)
+	filters := filters(pass, videoStats, limit, eOptions.Pixfmt)
 	if filters != "" {
 		options = append(options, "-vf", filters)
 	}
@@ -50,18 +50,18 @@ func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats
 	// Video encoding options
 	if !settings.OutputTarget.VideoPassthrough {
 		options = append(options,
-			"-c:v", settings.SelectedVEncoder.Encoder,
-			settings.SelectedVEncoder.PresetCmd, settings.SelectedSettings.Preset,
+			"-c:v", eOptions.Encoder,
+			eOptions.PresetCmd, eTarget.Preset,
 			"-b:v", strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', -1, 64)+"k",
 			"-vsync", "vfr",
 		)
-		if settings.SelectedVEncoder.Options != "" {
+		if eOptions.Options != "" {
 			options = append(options, vEncoderOptions...)
 		}
-		options = append(options, "-g", strconv.FormatFloat(FPS*float64(settings.SelectedVEncoder.Keyint), 'f', 0, 64))
+		options = append(options, "-g", strconv.FormatFloat(FPS*float64(eOptions.Keyint), 'f', 0, 64))
 		// 2pass
 		if pass != 0 {
-			options = append(options, settings.SelectedVEncoder.PassCmd, strconv.Itoa(pass))
+			options = append(options, eOptions.PassCmd, strconv.Itoa(pass))
 		}
 	} else {
 		options = append(options,
@@ -87,7 +87,7 @@ func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats
 	options = append(options, "-map_chapters", "-1")
 
 	// Faststart for MP4
-	if strings.ToLower(settings.SelectedVEncoder.Container) == "mp4" {
+	if strings.ToLower(eOptions.Container) == "mp4" {
 		options = append(options, "-movflags", "+faststart")
 	}
 

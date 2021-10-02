@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTracks int, startingTime float64, totalTime float64) {
+func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTracks int, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) {
 	var options []string
-	encoderSettings := strings.Split(settings.SelectedAEncoder.Options, " ")
+	encoderSettings := strings.Split(eOptions.Options, " ")
 	times := metadata.AppendTimes(startingTime, totalTime)
 
 	tempFilename := inFilename + ".temp.wav"
@@ -42,12 +42,12 @@ func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTrac
 
 	// Encoding options
 	options = append(options,
-		"-c:a", settings.SelectedAEncoder.Encoder,
+		"-c:a", eOptions.Encoder,
 	)
-	if settings.SelectedAEncoder.Options != "" {
+	if eOptions.Options != "" {
 		options = append(options, encoderSettings...)
 	}
-	if settings.SelectedAEncoder.UsesBitrate {
+	if eOptions.UsesBitrate {
 		options = append(options,
 			"-b:a", strconv.FormatFloat(bitrate, 'f', -1, 64) + "k",
 		)

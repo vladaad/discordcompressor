@@ -15,10 +15,6 @@ type OutTarget struct {
 	AudioBitrate     float64
 }
 
-var SelectedSettings *Target
-var SelectedLimits *Limits
-var SelectedVEncoder *Encoder
-var SelectedAEncoder *AudioEncoder
 var MaxTotalBitrate float64
 var OutputTarget *OutTarget
 var MixTracks bool

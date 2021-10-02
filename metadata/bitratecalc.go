@@ -20,14 +20,14 @@ func CalcTotalBitrate(size float64, duration float64) float64 {
 	return bitrate
 }
 
-func CalcAudioBitrate(targetBitrate float64) float64 {
+func CalcAudioBitrate(targetBitrate float64, encoder settings.AudioEncoder) float64 {
 	// Audio calc
-	AudioBitrate := targetBitrate * float64(settings.SelectedAEncoder.BitratePerc) / float64(100)
-	if AudioBitrate > settings.SelectedAEncoder.MaxBitrate {
-		AudioBitrate = settings.SelectedAEncoder.MaxBitrate
+	AudioBitrate := targetBitrate * float64(encoder.BitratePerc) / float64(100)
+	if AudioBitrate > encoder.MaxBitrate {
+		AudioBitrate = encoder.MaxBitrate
 	}
-	if AudioBitrate < settings.SelectedAEncoder.MinBitrate {
-		AudioBitrate = settings.SelectedAEncoder.MinBitrate
+	if AudioBitrate < encoder.MinBitrate {
+		AudioBitrate = encoder.MinBitrate
 	}
 	return AudioBitrate
 }
