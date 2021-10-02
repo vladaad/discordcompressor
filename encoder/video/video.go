@@ -14,12 +14,12 @@ import (
 
 var FPS float64
 
-func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats) bool {
+func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats, startingTime float64, totalTime float64) bool {
 	var options []string
 	// Vars
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + settings.SelectedVEncoder.Container
 	vEncoderOptions := strings.Split(settings.SelectedVEncoder.Options, " ")
-	times := metadata.AppendTimes()
+	times := metadata.AppendTimes(startingTime, totalTime)
 	// Command
 	if settings.Debug {
 		options = append(options,

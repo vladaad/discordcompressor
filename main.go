@@ -43,8 +43,8 @@ func main() {
 
 	// Settings loading
 	inVideo := *inputVideo
-	settings.Starttime = *startTime
-	settings.Time = *time
+	startingTime := *startTime
+	totalTime := *time
 	settings.Debug = *debug
 	settings.Original = *original
 	settings.Focus = *focus
@@ -87,14 +87,14 @@ func main() {
 	log.Println("Analyzing video...")
 	videoStats := metadata.GetStats(inVideo, false)
 	// Checking time
-	if settings.Starttime + settings.Time > videoStats.Duration {
+	if startingTime + totalTime > videoStats.Duration {
 		log.Println("Invalid length!")
 		os.Exit(0)
 	}
-	if settings.Time != 0 {
-		videoStats.Duration = settings.Time
-	} else if settings.Starttime != 0 {
-		videoStats.Duration = videoStats.Duration - settings.Starttime
+	if totalTime != 0 {
+		videoStats.Duration = totalTime
+	} else if startingTime != 0 {
+		videoStats.Duration =- startingTime
 	}
 	if settings.Debug {
 		log.Println("Input stats:")
@@ -114,13 +114,13 @@ func main() {
 	// AB calc & passthrough
 	hasAudio := true
 	t.AudioBitrate = metadata.CalcAudioBitrate(settings.MaxTotalBitrate)
-	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(inVideo, t.AudioBitrate, videoStats)
+	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(inVideo, t.AudioBitrate, videoStats, startingTime, totalTime)
 	if reEncA {t.AudioPassthrough = false}
 	if reEncV {t.VideoPassthrough = false}
 	// Audio encoding
 	if !t.AudioPassthrough && videoStats.AudioTracks != 0 {
 		log.Println("Encoding audio...")
-		t.AudioBitrate, settings.AudioFile = audio.EncodeAudio(inVideo, t.AudioBitrate, videoStats.AudioTracks)
+		t.AudioBitrate, settings.AudioFile = audio.EncodeAudio(inVideo, t.AudioBitrate, videoStats.AudioTracks, startingTime, totalTime)
 	} else if !t.AudioPassthrough {
 		t.AudioBitrate = 0
 		hasAudio = false
@@ -140,12 +140,12 @@ func main() {
 	// Encode
 	if settings.SelectedVEncoder.TwoPass && !settings.OutputTarget.VideoPassthrough {
 		log.Println("Encoding, pass 1/2")
-		video.Encode(inVideo, 1, false, videoStats)
+		video.Encode(inVideo, 1, false, videoStats, startingTime, totalTime)
 		log.Println("Encoding, pass 2/2")
-		video.Encode(inVideo, 2, hasAudio, videoStats)
+		video.Encode(inVideo, 2, hasAudio, videoStats, startingTime, totalTime)
 	} else {
 		log.Println("Encoding, pass 1/1")
-		video.Encode(inVideo, 0, hasAudio, videoStats)
+		video.Encode(inVideo, 0, hasAudio, videoStats, startingTime, totalTime)
 	}
 	log.Println("Cleaning up...")
 	os.Remove("ffmpeg2pass-0.log")

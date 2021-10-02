@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-func extractAudio (inFilename string, outFilename string, encoder string, audioTracks int) {
+func extractAudio (inFilename string, outFilename string, encoder string, audioTracks int, startingTime float64, totalTime float64) {
 	var options []string
-	times := metadata.AppendTimes()
+	times := metadata.AppendTimes(startingTime, totalTime)
 	if settings.Debug {
 		options = append(options,
 			"-loglevel", "warning", "-stats",

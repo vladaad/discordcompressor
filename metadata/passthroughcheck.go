@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func CheckStreamCompatibility(filename string, audioBitrateIn float64, videoStats *VidStats) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
+func CheckStreamCompatibility(filename string, audioBitrateIn float64, videoStats *VidStats, startingTime float64, totalTime float64) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
 	audioCompatible, videoCompatible = false, false
 	// If bitrate wasn't able to be analyzed, analyze it xd
 	if (videoStats.AudioBitrate == 0 || videoStats.VideoBitrate == 0) && videoStats.AudioTracks != 0 {
@@ -43,7 +43,7 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, videoStat
 	}
 
 	// I'm not dealing with times and passthrough, fuck that
-	if settings.Time != float64(0) || settings.Starttime != float64(0) {
+	if totalTime != float64(0) || startingTime != float64(0) {
 		audioCompatible, videoCompatible = false, false
 	}
 

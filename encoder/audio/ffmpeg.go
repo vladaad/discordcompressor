@@ -10,15 +10,15 @@ import (
 	"strings"
 )
 
-func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTracks int) {
+func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTracks int, startingTime float64, totalTime float64) {
 	var options []string
 	encoderSettings := strings.Split(settings.SelectedAEncoder.Options, " ")
-	times := metadata.AppendTimes()
+	times := metadata.AppendTimes(startingTime, totalTime)
 
 	tempFilename := inFilename + ".temp.wav"
 	useTempFile := false
 	if settings.MixTracks && audioTracks > 1 {
-		extractAudio(inFilename, tempFilename, "", audioTracks)
+		extractAudio(inFilename, tempFilename, "", audioTracks, startingTime, totalTime)
 		useTempFile = true
 	}
 

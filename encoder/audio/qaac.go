@@ -9,12 +9,12 @@ import (
 	"strings"
 )
 
-func encQaac(inFilename string, bitrate float64, audioTracks int) string {
+func encQaac(inFilename string, bitrate float64, audioTracks int, startingTime float64, totalTime float64) string {
 	var options []string
 	encoderSettings := strings.Split(settings.SelectedAEncoder.Options, " ")
 
 	tempFilename := inFilename + ".temp.wav"
-	extractAudio(inFilename, tempFilename, "", audioTracks)
+	extractAudio(inFilename, tempFilename, "", audioTracks, startingTime, totalTime)
 
 	// Encoding options
 	if settings.SelectedAEncoder.UsesBitrate {

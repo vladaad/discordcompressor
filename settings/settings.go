@@ -15,8 +15,6 @@ type OutTarget struct {
 	AudioBitrate     float64
 }
 
-var Starttime float64
-var Time float64
 var SelectedSettings *Target
 var SelectedLimits *Limits
 var SelectedVEncoder *Encoder
