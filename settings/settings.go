@@ -24,7 +24,6 @@ var SelectedAEncoder *AudioEncoder
 var MaxTotalBitrate float64
 var OutputTarget *OutTarget
 var MixTracks bool
-var InputVideo string
 var AudioFile string
 var Debug bool
 var Focus string
