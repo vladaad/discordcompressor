@@ -111,42 +111,41 @@ func main() {
 	// Choosing target
 	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(totalBitrate)
 	log.Println(limits)
-	t := new(settings.OutTarget)
+	outTarget := new(video.OutTarget)
 	// AB calc & passthrough
 	hasAudio := true
-	t.AudioBitrate = metadata.CalcAudioBitrate(totalBitrate, settings.AudioEncoder{})
-	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(inVideo, t.AudioBitrate, totalBitrate, videoStats, startingTime, totalTime, videoEncoder, audioEncoder)
-	if reEncA {t.AudioPassthrough = false}
-	if reEncV {t.VideoPassthrough = false}
+	outTarget.AudioBitrate = metadata.CalcAudioBitrate(totalBitrate, settings.AudioEncoder{})
+	outTarget.AudioPassthrough, outTarget.VideoPassthrough, outTarget.AudioBitrate = metadata.CheckStreamCompatibility(inVideo, outTarget.AudioBitrate, totalBitrate, videoStats, startingTime, totalTime, videoEncoder, audioEncoder)
+	if reEncA {outTarget.AudioPassthrough = false}
+	if reEncV {outTarget.VideoPassthrough = false}
 	// Audio encoding
-	if !t.AudioPassthrough && videoStats.AudioTracks != 0 {
+	if !outTarget.AudioPassthrough && videoStats.AudioTracks != 0 {
 		log.Println("Encoding audio...")
-		t.AudioBitrate, settings.AudioFile = audio.EncodeAudio(inVideo, t.AudioBitrate, videoStats.AudioTracks, videoEncoder.Container, audioEncoder, startingTime, totalTime)
-	} else if !t.AudioPassthrough {
-		t.AudioBitrate = 0
+		outTarget.AudioBitrate, settings.AudioFile = audio.EncodeAudio(inVideo, outTarget.AudioBitrate, videoStats.AudioTracks, videoEncoder.Container, audioEncoder, startingTime, totalTime)
+	} else if !outTarget.AudioPassthrough {
+		outTarget.AudioBitrate = 0
 		hasAudio = false
 	}
 	// Video bitrate calc
-	t.VideoBitrate = totalBitrate - t.AudioBitrate
-	settings.OutputTarget = t
+	outTarget.VideoBitrate = totalBitrate - outTarget.AudioBitrate
 	// Debug
 	if settings.Debug {
 		log.Println("Calculated target bitrate: " + strconv.FormatFloat(totalBitrate, 'f', 1, 64) + "k")
 		if videoStats.AudioTracks != 0 {
-			log.Println("Calculated video bitrate: " + strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', 1, 64) + "k")
-			log.Println("Calculated audio bitrate: " + strconv.FormatFloat(settings.OutputTarget.AudioBitrate, 'f', 1, 64) + "k")
+			log.Println("Calculated video bitrate: " + strconv.FormatFloat(outTarget.VideoBitrate, 'f', 1, 64) + "k")
+			log.Println("Calculated audio bitrate: " + strconv.FormatFloat(outTarget.AudioBitrate, 'f', 1, 64) + "k")
 		}
 	}
 
 	// Encode
-	if videoEncoder.TwoPass && !settings.OutputTarget.VideoPassthrough {
+	if videoEncoder.TwoPass && outTarget.VideoPassthrough {
 		log.Println("Encoding, pass 1/2")
-		video.Encode(inVideo, 1, false, videoStats, videoEncoder, target, limits, startingTime, totalTime)
+		video.Encode(inVideo, 1, false, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 		log.Println("Encoding, pass 2/2")
-		video.Encode(inVideo, 2, hasAudio, videoStats, videoEncoder, target, limits, startingTime, totalTime)
+		video.Encode(inVideo, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 	} else {
 		log.Println("Encoding, pass 1/1")
-		video.Encode(inVideo, 0, hasAudio, videoStats, videoEncoder, target, limits, startingTime, totalTime)
+		video.Encode(inVideo, 0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 	}
 	log.Println("Cleaning up...")
 	os.Remove("ffmpeg2pass-0.log")

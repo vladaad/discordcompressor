@@ -8,14 +8,6 @@ type fileformat struct {
 	Encoding  *encoding
 }
 
-type OutTarget struct {
-	AudioPassthrough bool
-	VideoPassthrough bool
-	VideoBitrate     float64
-	AudioBitrate     float64
-}
-
-var OutputTarget *OutTarget
 var MixTracks bool
 var AudioFile string
 var Debug bool

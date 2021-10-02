@@ -12,9 +12,16 @@ import (
 	"strings"
 )
 
+type OutTarget struct {
+	AudioPassthrough bool
+	VideoPassthrough bool
+	VideoBitrate     float64
+	AudioBitrate     float64
+}
+
 var FPS float64
 
-func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, startingTime float64, totalTime float64) bool {
+func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget,  startingTime float64, totalTime float64) bool {
 	var options []string
 	// Vars
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + eOptions.Container
@@ -37,7 +44,7 @@ func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats
 	options = append(options, "-i", filename)
 
 	// Audio append
-	if audio && !settings.OutputTarget.AudioPassthrough {
+	if audio && !oTarget.AudioPassthrough {
 		options = append(options, "-i", settings.AudioFile)
 	}
 
@@ -48,11 +55,11 @@ func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats
 	}
 
 	// Video encoding options
-	if !settings.OutputTarget.VideoPassthrough {
+	if !oTarget.VideoPassthrough {
 		options = append(options,
 			"-c:v", eOptions.Encoder,
 			eOptions.PresetCmd, eTarget.Preset,
-			"-b:v", strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', -1, 64)+"k",
+			"-b:v", strconv.FormatFloat(oTarget.VideoBitrate, 'f', -1, 64)+"k",
 			"-vsync", "vfr",
 		)
 		if eOptions.Options != "" {
@@ -73,14 +80,14 @@ func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats
 	options = append(options,
 		"-map", "0:v:0",
 	)
-	if settings.OutputTarget.AudioPassthrough {
+	if oTarget.AudioPassthrough {
 		options = append(options, "-map", "0:a:0")
 	} else if audio {
 		options = append(options, "-map", "1:a:0")
 	} else {
 		options = append(options, "-an")
 	}
-	if settings.OutputTarget.AudioPassthrough || audio {
+	if oTarget.AudioPassthrough || audio {
 		options = append(options, "-c:a", "copy")
 	}
 	options = append(options, "-map_metadata", "-1")
