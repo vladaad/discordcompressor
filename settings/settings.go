@@ -8,19 +8,6 @@ type fileformat struct {
 	Encoding  *encoding
 }
 
-type VidStats struct {
-	Height	     int
-	FPS		     float64
-	Bitrate      float64
-	Duration     float64
-	Pixfmt       string
-	AudioTracks  int
-	AudioCodec   string
-	AudioBitrate float64
-	VideoCodec   string
-	VideoBitrate float64
-}
-
 type OutTarget struct {
 	AudioPassthrough bool
 	VideoPassthrough bool
@@ -35,7 +22,6 @@ var SelectedLimits *Limits
 var SelectedVEncoder *Encoder
 var SelectedAEncoder *AudioEncoder
 var MaxTotalBitrate float64
-var VideoStats *VidStats
 var OutputTarget *OutTarget
 var MixTracks bool
 var InputVideo string

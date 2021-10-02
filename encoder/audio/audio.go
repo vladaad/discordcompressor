@@ -9,16 +9,16 @@ import (
 	"strings"
 )
 
-func EncodeAudio (inFilename string, inBitrate float64) (outBitrate float64, outFilename string) {
+func EncodeAudio (inFilename string, inBitrate float64, audioTracks int) (outBitrate float64, outFilename string) {
 	// filename
 	outFilenameBase := strings.TrimSuffix(inFilename, path.Ext(inFilename)) + ".audio."
 	// encode
 	switch settings.SelectedAEncoder.Type {
 	case "ffmpeg":
 		outFilename = outFilenameBase + settings.SelectedVEncoder.Container
-		encFFmpeg(inFilename, outFilename, inBitrate)
+		encFFmpeg(inFilename, outFilename, inBitrate, audioTracks)
 	case "qaac":
-		outFilename = encQaac(inFilename, inBitrate)
+		outFilename = encQaac(inFilename, inBitrate, audioTracks)
 	default:
 		log.Println("Encoder type " + settings.SelectedAEncoder.Type + " not found")
 		os.Exit(0)

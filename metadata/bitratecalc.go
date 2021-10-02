@@ -7,8 +7,8 @@ import (
 	"strconv"
 )
 
-func CalcTotalBitrate(size float64) float64 {
-	bitrate := size / settings.VideoStats.Duration
+func CalcTotalBitrate(size float64, duration float64) float64 {
+	bitrate := size / duration
 	if bitrate > settings.Encoding.BitrateLimitMax {
 		bitrate = settings.Encoding.BitrateLimitMax
 	}

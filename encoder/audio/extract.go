@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func extractAudio (inFilename string, outFilename string, encoder string) {
+func extractAudio (inFilename string, outFilename string, encoder string, audioTracks int) {
 	var options []string
 	times := metadata.AppendTimes()
 	if settings.Debug {
@@ -33,12 +33,12 @@ func extractAudio (inFilename string, outFilename string, encoder string) {
 		)
 	}
 	// Trackmix
-	if settings.MixTracks && settings.VideoStats.AudioTracks > 1 {
+	if settings.MixTracks && audioTracks > 1 {
 		var filter []string
-		for i := 0; i < settings.VideoStats.AudioTracks; i++ {
+		for i := 0; i < audioTracks; i++ {
 			filter = append(filter, "[0:a:" + strconv.Itoa(i) + "]")
 		}
-		filter = append(filter, "amix=inputs=", strconv.Itoa(settings.VideoStats.AudioTracks))
+		filter = append(filter, "amix=inputs=", strconv.Itoa(audioTracks))
 		filter = append(filter, "[out]")
 		options = append(options, "-filter_complex", strings.Join(filter, ""), "-map", "[out]")
 	} else {

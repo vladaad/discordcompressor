@@ -85,42 +85,42 @@ func main() {
 
 	// Video analysis
 	log.Println("Analyzing video...")
-	settings.VideoStats = metadata.GetStats(*inputVideo, false)
+	videoStats := metadata.GetStats(*inputVideo, false)
 	// Checking time
-	if settings.Starttime + settings.Time > settings.VideoStats.Duration {
+	if settings.Starttime + settings.Time > videoStats.Duration {
 		log.Println("Invalid length!")
 		os.Exit(0)
 	}
 	if settings.Time != 0 {
-		settings.VideoStats.Duration = settings.Time
+		videoStats.Duration = settings.Time
 	} else if settings.Starttime != 0 {
-		settings.VideoStats.Duration = settings.VideoStats.Duration - settings.Starttime
+		videoStats.Duration = videoStats.Duration - settings.Starttime
 	}
 	if settings.Debug {
 		log.Println("Input stats:")
-		log.Println(strconv.Itoa(settings.VideoStats.Height) + "p " + strconv.FormatFloat(settings.VideoStats.FPS, 'f', -1, 64) + "fps")
-		log.Println("Length: " + strconv.FormatFloat(settings.VideoStats.Duration, 'f', -1, 64) + " seconds")
-		log.Println("Pixel format: " + settings.VideoStats.Pixfmt)
-		log.Println("Audio tracks: " + strconv.Itoa(settings.VideoStats.AudioTracks))
-		if settings.VideoStats.AudioTracks != 0 {
-			log.Println(settings.VideoStats.AudioCodec + ", " + strconv.FormatFloat(settings.VideoStats.AudioBitrate, 'f', 1, 64) + "k")
+		log.Println(strconv.Itoa(videoStats.Height) + "p " + strconv.FormatFloat(videoStats.FPS, 'f', -1, 64) + "fps")
+		log.Println("Length: " + strconv.FormatFloat(videoStats.Duration, 'f', -1, 64) + " seconds")
+		log.Println("Pixel format: " + videoStats.Pixfmt)
+		log.Println("Audio tracks: " + strconv.Itoa(videoStats.AudioTracks))
+		if videoStats.AudioTracks != 0 {
+			log.Println(videoStats.AudioCodec + ", " + strconv.FormatFloat(videoStats.AudioBitrate, 'f', 1, 64) + "k")
 		}
 	}
 	// Total bitrate calc
-	settings.MaxTotalBitrate = metadata.CalcTotalBitrate(targetSizeKbit)
+	settings.MaxTotalBitrate = metadata.CalcTotalBitrate(targetSizeKbit, videoStats.Duration)
 	// Choosing target
 	metadata.SelectEncoder(settings.MaxTotalBitrate)
 	t := new(settings.OutTarget)
 	// AB calc & passthrough
 	hasAudio := true
 	t.AudioBitrate = metadata.CalcAudioBitrate(settings.MaxTotalBitrate)
-	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(*inputVideo, t.AudioBitrate)
+	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(*inputVideo, t.AudioBitrate, videoStats)
 	if reEncA {t.AudioPassthrough = false}
 	if reEncV {t.VideoPassthrough = false}
 	// Audio encoding
-	if !t.AudioPassthrough && settings.VideoStats.AudioTracks != 0 {
+	if !t.AudioPassthrough && videoStats.AudioTracks != 0 {
 		log.Println("Encoding audio...")
-		t.AudioBitrate, settings.AudioFile = audio.EncodeAudio(*inputVideo, t.AudioBitrate)
+		t.AudioBitrate, settings.AudioFile = audio.EncodeAudio(*inputVideo, t.AudioBitrate, videoStats.AudioTracks)
 	} else if !t.AudioPassthrough {
 		t.AudioBitrate = 0
 		hasAudio = false
@@ -131,7 +131,7 @@ func main() {
 	// Debug
 	if settings.Debug {
 		log.Println("Calculated target bitrate: " + strconv.FormatFloat(settings.MaxTotalBitrate, 'f', 1, 64) + "k")
-		if settings.VideoStats.AudioTracks != 0 {
+		if videoStats.AudioTracks != 0 {
 			log.Println("Calculated video bitrate: " + strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', 1, 64) + "k")
 			log.Println("Calculated audio bitrate: " + strconv.FormatFloat(settings.OutputTarget.AudioBitrate, 'f', 1, 64) + "k")
 		}
@@ -140,12 +140,12 @@ func main() {
 	// Encode
 	if settings.SelectedVEncoder.TwoPass && !settings.OutputTarget.VideoPassthrough {
 		log.Println("Encoding, pass 1/2")
-		video.Encode(*inputVideo, 1, false)
+		video.Encode(*inputVideo, 1, false, videoStats)
 		log.Println("Encoding, pass 2/2")
-		video.Encode(*inputVideo, 2, hasAudio)
+		video.Encode(*inputVideo, 2, hasAudio, videoStats)
 	} else {
 		log.Println("Encoding, pass 1/1")
-		video.Encode(*inputVideo, 0, hasAudio)
+		video.Encode(*inputVideo, 0, hasAudio, videoStats)
 	}
 	log.Println("Cleaning up...")
 	os.Remove("ffmpeg2pass-0.log")

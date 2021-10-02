@@ -5,27 +5,27 @@ import (
 	"log"
 )
 
-func CheckStreamCompatibility(filename string, audioBitrateIn float64) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
+func CheckStreamCompatibility(filename string, audioBitrateIn float64, videoStats *VidStats) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
 	audioCompatible, videoCompatible = false, false
 	// If bitrate wasn't able to be analyzed, analyze it xd
-	if (settings.VideoStats.AudioBitrate == 0 || settings.VideoStats.VideoBitrate == 0) && settings.VideoStats.AudioTracks != 0 {
-		settings.VideoStats.AudioBitrate = AnalyzeAudio(filename)
+	if (videoStats.AudioBitrate == 0 || videoStats.VideoBitrate == 0) && videoStats.AudioTracks != 0 {
+		videoStats.AudioBitrate = AnalyzeAudio(filename)
 	}
 	// VB calc
-	if settings.VideoStats.AudioTracks != 0 {
-		settings.VideoStats.VideoBitrate = settings.VideoStats.Bitrate - settings.VideoStats.AudioBitrate
+	if videoStats.AudioTracks != 0 {
+		videoStats.VideoBitrate = videoStats.Bitrate - videoStats.AudioBitrate
 	} else {
-		settings.VideoStats.VideoBitrate = settings.VideoStats.Bitrate
+		videoStats.VideoBitrate = videoStats.Bitrate
 	}
 	// To save you from understanding this spaghetti, the audio has to be:
 	// The same codec as would normally be encoded
 	// Below max bitrate
-	if settings.VideoStats.AudioCodec == settings.SelectedAEncoder.CodecName && settings.VideoStats.AudioBitrate < settings.SelectedAEncoder.MaxBitrate && settings.VideoStats.AudioTracks != 0 {
+	if videoStats.AudioCodec == settings.SelectedAEncoder.CodecName && videoStats.AudioBitrate < settings.SelectedAEncoder.MaxBitrate && videoStats.AudioTracks != 0 {
 		audioCompatible = true
-		audioBitrateIn = settings.VideoStats.AudioBitrate
+		audioBitrateIn = videoStats.AudioBitrate
 	}
 
-	if settings.VideoStats.AudioTracks > 1 {
+	if videoStats.AudioTracks > 1 {
 		log.Println("Multiple audio tracks detected! You can use -mixaudio to mix them into one")
 	}
 
@@ -34,10 +34,10 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64) (audioCom
 	// Video bitrate must be detected
 	// Audio should be passed through too
 	// Video bitrate must be below total bitrate
-	if settings.SelectedVEncoder.CodecName == settings.VideoStats.VideoCodec && (settings.VideoStats.Pixfmt == "yuv420p" || settings.VideoStats.Pixfmt == settings.SelectedVEncoder.Pixfmt) {
-		if audioCompatible && settings.MaxTotalBitrate < settings.VideoStats.Bitrate {
+	if settings.SelectedVEncoder.CodecName == videoStats.VideoCodec && (videoStats.Pixfmt == "yuv420p" || videoStats.Pixfmt == settings.SelectedVEncoder.Pixfmt) {
+		if audioCompatible && settings.MaxTotalBitrate < videoStats.Bitrate {
 			videoCompatible = true
-		} else if settings.VideoStats.VideoBitrate < settings.MaxTotalBitrate - audioBitrateIn {
+		} else if videoStats.VideoBitrate < settings.MaxTotalBitrate - audioBitrateIn {
 			videoCompatible = true
 		}
 	}

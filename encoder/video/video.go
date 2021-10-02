@@ -14,7 +14,7 @@ import (
 
 var FPS float64
 
-func Encode(filename string, pass int, audio bool) bool {
+func Encode(filename string, pass int, audio bool, videoStats *metadata.VidStats) bool {
 	var options []string
 	// Vars
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + settings.SelectedVEncoder.Container
@@ -42,7 +42,7 @@ func Encode(filename string, pass int, audio bool) bool {
 	}
 
 	// Video filters
-	filters := filters(pass)
+	filters := filters(pass, videoStats)
 	if filters != "" {
 		options = append(options, "-vf", filters)
 	}
