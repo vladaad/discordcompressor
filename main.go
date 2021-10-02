@@ -107,15 +107,15 @@ func main() {
 		}
 	}
 	// Total bitrate calc
-	settings.MaxTotalBitrate = metadata.CalcTotalBitrate(targetSizeKbit, videoStats.Duration)
+	totalBitrate := metadata.CalcTotalBitrate(targetSizeKbit, videoStats.Duration)
 	// Choosing target
-	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(settings.MaxTotalBitrate)
+	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(totalBitrate)
 	log.Println(limits)
 	t := new(settings.OutTarget)
 	// AB calc & passthrough
 	hasAudio := true
-	t.AudioBitrate = metadata.CalcAudioBitrate(settings.MaxTotalBitrate, settings.AudioEncoder{})
-	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(inVideo, t.AudioBitrate, videoStats, startingTime, totalTime, videoEncoder, audioEncoder)
+	t.AudioBitrate = metadata.CalcAudioBitrate(totalBitrate, settings.AudioEncoder{})
+	t.AudioPassthrough, t.VideoPassthrough, t.AudioBitrate = metadata.CheckStreamCompatibility(inVideo, t.AudioBitrate, totalBitrate, videoStats, startingTime, totalTime, videoEncoder, audioEncoder)
 	if reEncA {t.AudioPassthrough = false}
 	if reEncV {t.VideoPassthrough = false}
 	// Audio encoding
@@ -127,11 +127,11 @@ func main() {
 		hasAudio = false
 	}
 	// Video bitrate calc
-	t.VideoBitrate = settings.MaxTotalBitrate - t.AudioBitrate
+	t.VideoBitrate = totalBitrate - t.AudioBitrate
 	settings.OutputTarget = t
 	// Debug
 	if settings.Debug {
-		log.Println("Calculated target bitrate: " + strconv.FormatFloat(settings.MaxTotalBitrate, 'f', 1, 64) + "k")
+		log.Println("Calculated target bitrate: " + strconv.FormatFloat(totalBitrate, 'f', 1, 64) + "k")
 		if videoStats.AudioTracks != 0 {
 			log.Println("Calculated video bitrate: " + strconv.FormatFloat(settings.OutputTarget.VideoBitrate, 'f', 1, 64) + "k")
 			log.Println("Calculated audio bitrate: " + strconv.FormatFloat(settings.OutputTarget.AudioBitrate, 'f', 1, 64) + "k")

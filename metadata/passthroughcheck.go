@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func CheckStreamCompatibility(filename string, audioBitrateIn float64, videoStats *VidStats, startingTime float64, totalTime float64, vEncoder *settings.Encoder, aEncoder *settings.AudioEncoder) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
+func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate float64, videoStats *VidStats, startingTime float64, totalTime float64, vEncoder *settings.Encoder, aEncoder *settings.AudioEncoder) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
 	audioCompatible, videoCompatible = false, false
 	// If bitrate wasn't able to be analyzed, analyze it xd
 	if (videoStats.AudioBitrate == 0 || videoStats.VideoBitrate == 0) && videoStats.AudioTracks != 0 {
@@ -35,9 +35,9 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, videoStat
 	// Audio should be passed through too
 	// Video bitrate must be below total bitrate
 	if vEncoder.CodecName == videoStats.VideoCodec && (videoStats.Pixfmt == "yuv420p" || videoStats.Pixfmt == vEncoder.Pixfmt) {
-		if audioCompatible && settings.MaxTotalBitrate < videoStats.Bitrate {
+		if audioCompatible && bitrate < videoStats.Bitrate {
 			videoCompatible = true
-		} else if videoStats.VideoBitrate < settings.MaxTotalBitrate - audioBitrateIn {
+		} else if videoStats.VideoBitrate < bitrate - audioBitrateIn {
 			videoCompatible = true
 		}
 	}

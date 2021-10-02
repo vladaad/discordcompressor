@@ -15,7 +15,6 @@ type OutTarget struct {
 	AudioBitrate     float64
 }
 
-var MaxTotalBitrate float64
 var OutputTarget *OutTarget
 var MixTracks bool
 var AudioFile string
