@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-func encQaac(inFilename string, bitrate float64, audioTracks int, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) string {
+func encQaac(inFilename string, outFilename string, bitrate float64, audioTracks int, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) string {
 	var options []string
 	encoderSettings := strings.Split(eOptions.Options, " ")
 
-	tempFilename := inFilename + ".temp.wav"
+	tempFilename := outFilename + "wav"
 	extractAudio(inFilename, tempFilename, "", audioTracks, startingTime, totalTime)
 
 	// Encoding options
@@ -51,5 +51,5 @@ func encQaac(inFilename string, bitrate float64, audioTracks int, eOptions *sett
 				panic("Failed to remove temporary audio file")
 		}
 	}
-	return inFilename + ".temp.m4a"
+	return outFilename + "m4a"
 }
