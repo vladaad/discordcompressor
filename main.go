@@ -110,7 +110,6 @@ func main() {
 	totalBitrate := metadata.CalcTotalBitrate(targetSizeKbit, videoStats.Duration)
 	// Choosing target
 	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(totalBitrate)
-	log.Println(limits)
 	outTarget := new(video.OutTarget)
 	// AB calc & passthrough
 	hasAudio := true
@@ -139,7 +138,7 @@ func main() {
 	}
 
 	// Encode
-	if videoEncoder.TwoPass && outTarget.VideoPassthrough {
+	if videoEncoder.TwoPass && !outTarget.VideoPassthrough {
 		log.Println("Encoding, pass 1/2")
 		video.Encode(inVideo, audioFile, 1, false, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 		log.Println("Encoding, pass 2/2")
