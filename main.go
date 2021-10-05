@@ -15,7 +15,14 @@ import (
 	"strconv"
 )
 
-func main() {
+var reEncV bool
+var reEncA bool
+var targetSizeKbit float64
+var startingTime float64
+var totalTime float64
+var input string
+
+func init() {
 	// Log setup
 	logFileName, _ := osext.ExecutableFolder()
 	logFileName += "/dcomp.log"
@@ -42,9 +49,9 @@ func main() {
 	flag.Parse()
 
 	// Settings loading
-	inVideo := *inputVideo
-	startingTime := *startTime
-	totalTime := *time
+	input = *inputVideo
+	startingTime = *startTime
+	totalTime = *time
 	settings.Debug = *debug
 	settings.Original = *original
 	settings.Focus = *focus
@@ -52,7 +59,7 @@ func main() {
 	settings.DryRun = *dryRun
 
 	// Reenc
-	reEncA, reEncV := false, false
+	reEncA, reEncV = false, false
 	if !(*reEncode == "a" || *reEncode == "av" || *reEncode == "va" || *reEncode == "v" || *reEncode == "") {
 		log.Println("The re-encode argument must be \"a\", \"v\" or \"av\"/\"va\".")
 		os.Exit(0)
@@ -67,15 +74,13 @@ func main() {
 		}
 	}
 
-	// Generate UUID
-	UUID := utils.GenUUID()
 	// ;)
 	newSettings := settings.LoadSettings(*settingsFile)
-	if inVideo == "" && !newSettings {
+	if input == "" && !newSettings {
 		utils.OpenURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 	}
 
-	if inVideo == "" {
+	if input == "" {
 		log.Println("No input video specified, closing...")
 		os.Exit(0)
 	}
@@ -83,8 +88,16 @@ func main() {
 	if *targetSize == float64(-1) {
 		*targetSize = settings.Encoding.SizeTargetMB
 	}
-	targetSizeKbit := *targetSize * 8192
+	targetSizeKbit = *targetSize * 8192
+}
 
+func main() {
+	compress(input)
+}
+
+func compress(inVideo string) {
+	// Generate UUID
+	UUID := utils.GenUUID()
 	// Video analysis
 	log.Println("Analyzing video...")
 	videoStats := metadata.GetStats(inVideo, false)
