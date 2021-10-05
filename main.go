@@ -67,6 +67,8 @@ func main() {
 		}
 	}
 
+	// Generate UUID
+	UUID := utils.GenUUID()
 	// ;)
 	newSettings := settings.LoadSettings(*settingsFile)
 	if inVideo == "" && !newSettings {
@@ -121,7 +123,7 @@ func main() {
 	var audioFile string
 	if !outTarget.AudioPassthrough && videoStats.AudioTracks != 0 {
 		log.Println("Encoding audio...")
-		outTarget.AudioBitrate, audioFile = audio.EncodeAudio(inVideo, outTarget.AudioBitrate, videoStats.AudioTracks, videoEncoder.Container, audioEncoder, startingTime, totalTime)
+		outTarget.AudioBitrate, audioFile = audio.EncodeAudio(inVideo, UUID, outTarget.AudioBitrate, videoStats.AudioTracks, videoEncoder.Container, audioEncoder, startingTime, totalTime)
 	} else if !outTarget.AudioPassthrough {
 		outTarget.AudioBitrate = 0
 		hasAudio = false
@@ -140,16 +142,16 @@ func main() {
 	// Encode
 	if videoEncoder.TwoPass && !outTarget.VideoPassthrough {
 		log.Println("Encoding, pass 1/2")
-		video.Encode(inVideo, audioFile, 1, false, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
+		video.Encode(inVideo, audioFile, UUID, 1, false, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 		log.Println("Encoding, pass 2/2")
-		video.Encode(inVideo, audioFile, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
+		video.Encode(inVideo, audioFile, UUID, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 	} else {
 		log.Println("Encoding, pass 1/1")
-		video.Encode(inVideo, audioFile,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
+		video.Encode(inVideo, audioFile, UUID,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 	}
 	log.Println("Cleaning up...")
-	os.Remove("ffmpeg2pass-0.log")
-	os.Remove("ffmpeg2pass-0.log.mbtree")
+	os.Remove(UUID + "-0.log")
+	os.Remove(UUID + "-0.log.mbtree")
 	if hasAudio{os.Remove(audioFile)}
 	log.Println("Finished!")
 }

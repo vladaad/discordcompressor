@@ -3,15 +3,13 @@ package audio
 import (
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
-	"github.com/vladaad/discordcompressor/utils"
 	"log"
 	"os"
 )
 
-func EncodeAudio (inFilename string, inBitrate float64, audioTracks int, container string, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) (outBitrate float64, outFilename string) {
+func EncodeAudio (inFilename string, UUID string, inBitrate float64, audioTracks int, container string, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) (outBitrate float64, outFilename string) {
 	// filename
-	outFilenameBase := utils.GenUUID() + "."
-	log.Println(outFilenameBase)
+	outFilenameBase := UUID + "."
 	// encode
 	switch eOptions.Type {
 	case "ffmpeg":
@@ -24,5 +22,9 @@ func EncodeAudio (inFilename string, inBitrate float64, audioTracks int, contain
 		os.Exit(0)
 	}
 	// bitrate
-	return metadata.GetStats(outFilename, true).Bitrate, outFilename
+	if !settings.DryRun {
+		return metadata.GetStats(outFilename, true).Bitrate, outFilename
+	} else {
+		return inBitrate, outFilename
+	}
 }

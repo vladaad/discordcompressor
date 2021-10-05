@@ -21,7 +21,7 @@ type OutTarget struct {
 
 var FPS float64
 
-func Encode(filename string, audioFilename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget, startingTime float64, totalTime float64) bool {
+func Encode(filename string, audioFilename string, logFilename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget, startingTime float64, totalTime float64) bool {
 	var options []string
 	// Vars
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + eOptions.Container
@@ -69,6 +69,7 @@ func Encode(filename string, audioFilename string, pass int, audio bool, videoSt
 		// 2pass
 		if pass != 0 {
 			options = append(options, eOptions.PassCmd, strconv.Itoa(pass))
+			options = append(options, "-passlogfile", logFilename)
 		}
 	} else {
 		options = append(options,
