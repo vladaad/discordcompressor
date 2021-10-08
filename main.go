@@ -126,7 +126,7 @@ func compress(inVideo string) bool {
 	defer wg.Done()
 	// Logging
 	_, cleanName := path.Split(strings.ReplaceAll(inVideo, "\\", "/"))
-	if settings.BatchMode{prefix = "[" + cleanName + "]"}
+	if settings.BatchMode{prefix = "[" + cleanName + "] "}
 
 	log.Println("Compressing " + cleanName)
 
@@ -134,12 +134,12 @@ func compress(inVideo string) bool {
 	UUID := utils.GenUUID()
 
 	// Video analysis
-	log.Println(prefix, "Analyzing video...")
+	log.Println(prefix + "Analyzing video...")
 	videoStats := metadata.GetStats(inVideo, false)
 
 	// Checking time
 	if startingTime + totalTime > videoStats.Duration {
-		log.Println(prefix, "Invalid length!")
+		log.Println(prefix + "Invalid length!")
 		return false
 	}
 	if totalTime != 0 {
@@ -179,7 +179,7 @@ func compress(inVideo string) bool {
 	// Audio encoding
 	var audioFile string
 	if !outTarget.AudioPassthrough && videoStats.AudioTracks != 0 {
-		log.Println(prefix, "Encoding audio...")
+		log.Println(prefix + "Encoding audio...")
 		outTarget.AudioBitrate, audioFile = audio.EncodeAudio(inVideo, UUID, outTarget.AudioBitrate, videoStats.AudioTracks, videoEncoder.Container, audioEncoder, startingTime, totalTime)
 	} else if !outTarget.AudioPassthrough {
 		outTarget.AudioBitrate = 0
@@ -200,12 +200,12 @@ func compress(inVideo string) bool {
 
 	// Encode
 	if videoEncoder.TwoPass && !outTarget.VideoPassthrough {
-		log.Println(prefix, "Encoding, pass 1/2")
+		log.Println(prefix + "Encoding, pass 1/2")
 		video.Encode(inVideo, audioFile, UUID, 1, false, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
-		log.Println(prefix, "Encoding, pass 2/2")
+		log.Println(prefix + "Encoding, pass 2/2")
 		video.Encode(inVideo, audioFile, UUID, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 	} else {
-		log.Println(prefix, "Encoding, pass 1/1")
+		log.Println(prefix + "Encoding, pass 1/1")
 		video.Encode(inVideo, audioFile, UUID,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 	}
 
@@ -214,7 +214,7 @@ func compress(inVideo string) bool {
 
 	if hasAudio{os.Remove(audioFile)}
 
-	if settings.BatchMode{log.Println("Finished compressing " + cleanName + "!")}
+	log.Println("Finished compressing " + cleanName + "!")
 
 	runningInstances -= 1
 	return true
