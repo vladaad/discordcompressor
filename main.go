@@ -172,7 +172,7 @@ func compress(inVideo string) bool {
 
 	// AB calc & passthrough
 	hasAudio := true
-	outTarget.AudioBitrate = metadata.CalcAudioBitrate(totalBitrate, settings.AudioEncoder{})
+	outTarget.AudioBitrate = metadata.CalcAudioBitrate(totalBitrate, settings.AudioEncoder{}, videoStats.AudioTracks)
 	outTarget.AudioPassthrough, outTarget.VideoPassthrough, outTarget.AudioBitrate = metadata.CheckStreamCompatibility(inVideo, outTarget.AudioBitrate, totalBitrate, videoStats, startingTime, totalTime, videoEncoder, audioEncoder)
 	if reEncA {outTarget.AudioPassthrough = false}
 	if reEncV {outTarget.VideoPassthrough = false}
