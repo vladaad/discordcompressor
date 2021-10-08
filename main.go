@@ -12,7 +12,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
 	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
 
 var reEncV bool
@@ -20,7 +24,9 @@ var reEncA bool
 var targetSizeKbit float64
 var startingTime float64
 var totalTime float64
-var input string
+var input []string
+var wg sync.WaitGroup
+var runningInstances int
 
 func init() {
 	// Log setup
@@ -36,7 +42,6 @@ func init() {
 
 	// Parsing flags
 	settingsFile := flag.String("settings", "", "Selects the settings file to be used")
-	inputVideo := flag.String("i", "", "Sets the input video")
 	startTime := flag.Float64("ss", float64(0), "Sets the starting time")
 	time := flag.Float64("t", float64(0), "Sets the time to encode")
 	targetSize := flag.Float64("size", float64(-1), "Sets the target size in MB")
@@ -47,9 +52,8 @@ func init() {
 	dryRun := flag.Bool("dryrun", false, "Just prints commands instead of running")
 	reEncode := flag.String("reenc", "", "Re-encodes even when not needed. \"a\", \"v\" or \"av\"")
 	flag.Parse()
-
 	// Settings loading
-	input = *inputVideo
+	input = flag.Args()
 	startingTime = *startTime
 	totalTime = *time
 	settings.Debug = *debug
@@ -76,11 +80,11 @@ func init() {
 
 	// ;)
 	newSettings := settings.LoadSettings(*settingsFile)
-	if input == "" && !newSettings {
+	if len(input) == 0 && !newSettings {
 		utils.OpenURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 	}
 
-	if input == "" {
+	if len(input) == 0 {
 		log.Println("No input video specified, closing...")
 		os.Exit(0)
 	}
@@ -89,28 +93,61 @@ func init() {
 		*targetSize = settings.Encoding.SizeTargetMB
 	}
 	targetSizeKbit = *targetSize * 8192
+
+	// enable batch mode - stdout
+	if len(input) > 1 && settings.General.BatchModeThreads > 1 {settings.BatchMode = true}
+
+	if settings.Debug || !settings.BatchMode {
+		settings.ShowStdOut = true
+	} else {
+		settings.ShowStdOut = false
+	}
 }
 
 func main() {
-	compress(input)
+	for i := range input {
+		// yes this is a mess
+		for {
+			if runningInstances + 1 < settings.General.BatchModeThreads {
+				wg.Add(1)
+				runningInstances += 1
+				go compress(input[i])
+				break
+			}
+			time.Sleep(time.Millisecond * 50)
+		}
+	}
+	wg.Wait()
+	if len(input) > 1 {log.Println("All files completed!")}
 }
 
-func compress(inVideo string) {
+func compress(inVideo string) bool {
+	var prefix string
+	defer wg.Done()
+	// Logging
+	_, cleanName := path.Split(strings.ReplaceAll(inVideo, "\\", "/"))
+	if settings.BatchMode{prefix = "[" + cleanName + "]"}
+
+	log.Println("Compressing " + cleanName)
+
 	// Generate UUID
 	UUID := utils.GenUUID()
+
 	// Video analysis
-	log.Println("Analyzing video...")
+	log.Println(prefix, "Analyzing video...")
 	videoStats := metadata.GetStats(inVideo, false)
+
 	// Checking time
 	if startingTime + totalTime > videoStats.Duration {
-		log.Println("Invalid length!")
-		os.Exit(0)
+		log.Println(prefix, "Invalid length!")
+		return false
 	}
 	if totalTime != 0 {
 		videoStats.Duration = totalTime
 	} else if startingTime != 0 {
 		videoStats.Duration =- startingTime
 	}
+
 	if settings.Debug {
 		log.Println("Input stats:")
 		log.Println(strconv.Itoa(videoStats.Height) + "p " + strconv.FormatFloat(videoStats.FPS, 'f', -1, 64) + "fps")
@@ -121,28 +158,37 @@ func compress(inVideo string) {
 			log.Println(videoStats.AudioCodec + ", " + strconv.FormatFloat(videoStats.AudioBitrate, 'f', 1, 64) + "k")
 		}
 	}
+
 	// Total bitrate calc
-	totalBitrate := metadata.CalcTotalBitrate(targetSizeKbit, videoStats.Duration)
+	totalBitrate, err := metadata.CalcTotalBitrate(targetSizeKbit, videoStats.Duration)
+	if err {
+		return false
+	}
+
 	// Choosing target
 	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(totalBitrate)
 	outTarget := new(video.OutTarget)
+
 	// AB calc & passthrough
 	hasAudio := true
 	outTarget.AudioBitrate = metadata.CalcAudioBitrate(totalBitrate, settings.AudioEncoder{})
 	outTarget.AudioPassthrough, outTarget.VideoPassthrough, outTarget.AudioBitrate = metadata.CheckStreamCompatibility(inVideo, outTarget.AudioBitrate, totalBitrate, videoStats, startingTime, totalTime, videoEncoder, audioEncoder)
 	if reEncA {outTarget.AudioPassthrough = false}
 	if reEncV {outTarget.VideoPassthrough = false}
+
 	// Audio encoding
 	var audioFile string
 	if !outTarget.AudioPassthrough && videoStats.AudioTracks != 0 {
-		log.Println("Encoding audio...")
+		log.Println(prefix, "Encoding audio...")
 		outTarget.AudioBitrate, audioFile = audio.EncodeAudio(inVideo, UUID, outTarget.AudioBitrate, videoStats.AudioTracks, videoEncoder.Container, audioEncoder, startingTime, totalTime)
 	} else if !outTarget.AudioPassthrough {
 		outTarget.AudioBitrate = 0
 		hasAudio = false
 	}
+
 	// Video bitrate calc
 	outTarget.VideoBitrate = totalBitrate - outTarget.AudioBitrate
+
 	// Debug
 	if settings.Debug {
 		log.Println("Calculated target bitrate: " + strconv.FormatFloat(totalBitrate, 'f', 1, 64) + "k")
@@ -154,17 +200,22 @@ func compress(inVideo string) {
 
 	// Encode
 	if videoEncoder.TwoPass && !outTarget.VideoPassthrough {
-		log.Println("Encoding, pass 1/2")
+		log.Println(prefix, "Encoding, pass 1/2")
 		video.Encode(inVideo, audioFile, UUID, 1, false, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
-		log.Println("Encoding, pass 2/2")
+		log.Println(prefix, "Encoding, pass 2/2")
 		video.Encode(inVideo, audioFile, UUID, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 	} else {
-		log.Println("Encoding, pass 1/1")
+		log.Println(prefix, "Encoding, pass 1/1")
 		video.Encode(inVideo, audioFile, UUID,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
 	}
-	log.Println("Cleaning up...")
+
 	os.Remove(UUID + "-0.log")
 	os.Remove(UUID + "-0.log.mbtree")
+
 	if hasAudio{os.Remove(audioFile)}
-	log.Println("Finished!")
+
+	if settings.BatchMode{log.Println("Finished compressing " + cleanName + "!")}
+
+	runningInstances -= 1
+	return true
 }

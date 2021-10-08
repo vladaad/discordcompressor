@@ -2,7 +2,6 @@ package metadata
 
 import (
 	"github.com/vladaad/discordcompressor/settings"
-	"log"
 )
 
 func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate float64, videoStats *VidStats, startingTime float64, totalTime float64, vEncoder *settings.Encoder, aEncoder *settings.AudioEncoder) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
@@ -23,10 +22,6 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate f
 	if videoStats.AudioCodec == aEncoder.CodecName && videoStats.AudioBitrate < aEncoder.MaxBitrate && videoStats.AudioTracks != 0 {
 		audioCompatible = true
 		audioBitrateIn = videoStats.AudioBitrate
-	}
-
-	if videoStats.AudioTracks > 1 {
-		log.Println("Multiple audio tracks detected! You can use -mixaudio to mix them into one")
 	}
 
 	// The conditions for video compatibility:

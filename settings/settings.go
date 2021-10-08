@@ -13,3 +13,5 @@ var Debug bool
 var Focus string
 var Original bool
 var DryRun bool
+var ShowStdOut bool
+var BatchMode bool

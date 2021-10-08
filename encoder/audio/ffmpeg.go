@@ -65,8 +65,10 @@ func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTrac
 	if !settings.DryRun {
 		cmd := exec.Command(settings.General.FFmpegExecutable, options...)
 
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		if settings.ShowStdOut {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		}
 
 		err := cmd.Start()
 		if err != nil {

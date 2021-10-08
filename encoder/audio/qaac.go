@@ -34,8 +34,10 @@ func encQaac(inFilename string, outFilename string, bitrate float64, audioTracks
 	if !settings.DryRun {
 		cmd := exec.Command(settings.General.QaacExecutable, options...)
 
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		if settings.ShowStdOut {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		}
 
 		err := cmd.Start()
 		if err != nil {

@@ -3,11 +3,10 @@ package metadata
 import (
 	"github.com/vladaad/discordcompressor/settings"
 	"log"
-	"os"
 	"strconv"
 )
 
-func CalcTotalBitrate(size float64, duration float64) float64 {
+func CalcTotalBitrate(size float64, duration float64) (float64, bool) {
 	bitrate := size / duration
 	if bitrate > settings.Encoding.BitrateLimitMax {
 		bitrate = settings.Encoding.BitrateLimitMax
@@ -15,9 +14,9 @@ func CalcTotalBitrate(size float64, duration float64) float64 {
 	if bitrate < settings.Encoding.BitrateLimitMin {
 		maxLength := size / settings.Encoding.BitrateLimitMin
 		log.Println("File too long! Maximum length: " + strconv.FormatFloat(maxLength, 'f', 1, 64) + " seconds")
-		os.Exit(0)
+		return 0, true
 	}
-	return bitrate
+	return bitrate, false
 }
 
 func CalcAudioBitrate(targetBitrate float64, encoder settings.AudioEncoder) float64 {
