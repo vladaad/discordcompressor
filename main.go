@@ -108,7 +108,7 @@ func main() {
 	for i := range input {
 		// yes this is a mess
 		for {
-			if runningInstances + 1 < settings.General.BatchModeThreads {
+			if runningInstances < settings.General.BatchModeThreads {
 				wg.Add(1)
 				runningInstances += 1
 				go compress(input[i])
