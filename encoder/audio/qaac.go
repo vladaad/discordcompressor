@@ -9,18 +9,18 @@ import (
 	"strings"
 )
 
-func encQaac(inFilename string, bitrate float64) string {
+func encQaac(inFilename string, outFilename string, bitrate float64, audioTracks int, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) string {
 	var options []string
-	encoderSettings := strings.Split(settings.SelectedAEncoder.Options, " ")
+	encoderSettings := strings.Split(eOptions.Options, " ")
 
-	tempFilename := inFilename + ".temp.wav"
-	extractAudio(inFilename, tempFilename, "")
+	tempFilename := outFilename + "wav"
+	extractAudio(inFilename, tempFilename, "", audioTracks, startingTime, totalTime)
 
 	// Encoding options
-	if settings.SelectedAEncoder.UsesBitrate {
+	if eOptions.UsesBitrate {
 		options = append(options, "-a", strconv.FormatFloat(bitrate, 'f', -1, 64))
 	}
-	if settings.SelectedAEncoder.Options != "" {
+	if eOptions.Options != "" {
 		options = append(options, encoderSettings...)
 	}
 	// Output options
@@ -34,8 +34,10 @@ func encQaac(inFilename string, bitrate float64) string {
 	if !settings.DryRun {
 		cmd := exec.Command(settings.General.QaacExecutable, options...)
 
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		if settings.ShowStdOut {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		}
 
 		err := cmd.Start()
 		if err != nil {
@@ -51,5 +53,5 @@ func encQaac(inFilename string, bitrate float64) string {
 				panic("Failed to remove temporary audio file")
 		}
 	}
-	return inFilename + ".temp.m4a"
+	return outFilename + "m4a"
 }

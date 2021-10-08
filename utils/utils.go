@@ -2,9 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"log"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 func OpenURL(url string) {
@@ -23,4 +25,10 @@ func OpenURL(url string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func GenUUID() string {
+	raw := uuid.New()
+	cleaned := strings.ReplaceAll(raw.String(), "-", "")
+	return cleaned
 }

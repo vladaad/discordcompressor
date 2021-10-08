@@ -28,8 +28,21 @@ type Format struct {
 	Bitrate string `json:"bit_rate"`
 }
 
-func GetStats(filepath string, audioonly bool) *settings.VidStats {
-	stats := new(settings.VidStats)
+type VidStats struct {
+	Height	     int
+	FPS		     float64
+	Bitrate      float64
+	Duration     float64
+	Pixfmt       string
+	AudioTracks  int
+	AudioCodec   string
+	AudioBitrate float64
+	VideoCodec   string
+	VideoBitrate float64
+}
+
+func GetStats(filepath string, audioonly bool) *VidStats {
+	stats := new(VidStats)
 	if _, err := os.Stat(filepath); err != nil {
 		panic(filepath + " doesn't exist")
 	}

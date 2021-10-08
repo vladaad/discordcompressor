@@ -5,24 +5,26 @@ import (
 	"github.com/vladaad/discordcompressor/settings"
 	"log"
 	"os"
-	"path"
-	"strings"
 )
 
-func EncodeAudio (inFilename string, inBitrate float64) (outBitrate float64, outFilename string) {
+func EncodeAudio (inFilename string, UUID string, inBitrate float64, audioTracks int, container string, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) (outBitrate float64, outFilename string) {
 	// filename
-	outFilenameBase := strings.TrimSuffix(inFilename, path.Ext(inFilename)) + ".audio."
+	outFilenameBase := UUID + "."
 	// encode
-	switch settings.SelectedAEncoder.Type {
+	switch eOptions.Type {
 	case "ffmpeg":
-		outFilename = outFilenameBase + settings.SelectedVEncoder.Container
-		encFFmpeg(inFilename, outFilename, inBitrate)
+		outFilename = outFilenameBase + container
+		encFFmpeg(inFilename, outFilename, inBitrate, audioTracks, eOptions, startingTime, totalTime)
 	case "qaac":
-		outFilename = encQaac(inFilename, inBitrate)
+		outFilename = encQaac(inFilename, outFilenameBase, inBitrate, audioTracks, eOptions, startingTime, totalTime)
 	default:
-		log.Println("Encoder type " + settings.SelectedAEncoder.Type + " not found")
+		log.Println("Encoder type " + eOptions.Type + " not found")
 		os.Exit(0)
 	}
 	// bitrate
-	return metadata.GetStats(outFilename, true).Bitrate, outFilename
+	if !settings.DryRun {
+		return metadata.GetStats(outFilename, true).Bitrate, outFilename
+	} else {
+		return inBitrate, outFilename
+	}
 }

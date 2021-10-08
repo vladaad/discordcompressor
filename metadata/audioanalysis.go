@@ -2,17 +2,17 @@ package metadata
 
 import (
 	"github.com/vladaad/discordcompressor/settings"
-	"log"
+	"github.com/vladaad/discordcompressor/utils"
 	"os"
 	"os/exec"
 	"strings"
 )
 
 func AnalyzeAudio(filename string) float64 {
-	log.Println("Extracting audio for analysis...")
+	UUID := utils.GenUUID()
 	sFilename := strings.Split(filename, ".")
 	extension := sFilename[len(sFilename)-1]
-	outFilename := strings.Replace(filename, extension, "analyse." + extension, len(sFilename) - 1)
+	outFilename := UUID + "." + extension
 	extract := exec.Command(
 		settings.General.FFmpegExecutable,
 		"-i", filename,

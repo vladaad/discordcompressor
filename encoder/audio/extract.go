@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-func extractAudio (inFilename string, outFilename string, encoder string) {
+func extractAudio (inFilename string, outFilename string, encoder string, audioTracks int, startingTime float64, totalTime float64) {
 	var options []string
-	times := metadata.AppendTimes()
+	times := metadata.AppendTimes(startingTime, totalTime)
 	if settings.Debug {
 		options = append(options,
 			"-loglevel", "warning", "-stats",
@@ -33,12 +33,12 @@ func extractAudio (inFilename string, outFilename string, encoder string) {
 		)
 	}
 	// Trackmix
-	if settings.MixTracks && settings.VideoStats.AudioTracks > 1 {
+	if settings.MixTracks && audioTracks > 1 {
 		var filter []string
-		for i := 0; i < settings.VideoStats.AudioTracks; i++ {
+		for i := 0; i < audioTracks; i++ {
 			filter = append(filter, "[0:a:" + strconv.Itoa(i) + "]")
 		}
-		filter = append(filter, "amix=inputs=", strconv.Itoa(settings.VideoStats.AudioTracks))
+		filter = append(filter, "amix=inputs=", strconv.Itoa(audioTracks))
 		filter = append(filter, "[out]")
 		options = append(options, "-filter_complex", strings.Join(filter, ""), "-map", "[out]")
 	} else {
@@ -57,8 +57,10 @@ func extractAudio (inFilename string, outFilename string, encoder string) {
 	if !settings.DryRun {
 		cmd := exec.Command(settings.General.FFmpegExecutable, options...)
 
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		if settings.ShowStdOut {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		}
 
 		err := cmd.Start()
 		if err != nil {
