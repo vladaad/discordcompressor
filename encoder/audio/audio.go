@@ -10,14 +10,16 @@ import (
 func EncodeAudio (inFilename string, UUID string, inBitrate float64, audioTracks int, container string, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) (outBitrate float64, outFilename string) {
 	// filename
 	outFilenameBase := UUID + "."
+	// start decoding
+	dec := decodeAudio(inFilename, audioTracks, startingTime, totalTime)
 	// encode
 	switch eOptions.Type {
 	case "ffmpeg":
 		outFilename = outFilenameBase + container
-		encFFmpeg(inFilename, outFilename, inBitrate, audioTracks, eOptions, startingTime, totalTime)
+		encFFmpeg(outFilename, inBitrate, eOptions, dec)
 	case "qaac":
 		outFilename = outFilenameBase + "m4a"
-		encQaac(inFilename, outFilename, inBitrate, audioTracks, eOptions, startingTime, totalTime)
+		encQaac(outFilename, inBitrate, eOptions, dec)
 	default:
 		log.Println("Encoder type " + eOptions.Type + " not found")
 		os.Exit(0)

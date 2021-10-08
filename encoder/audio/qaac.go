@@ -2,6 +2,7 @@ package audio
 
 import (
 	"github.com/vladaad/discordcompressor/settings"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -9,11 +10,9 @@ import (
 	"strings"
 )
 
-func encQaac(inFilename string, outFilename string, bitrate float64, audioTracks int, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) {
+func encQaac(outFilename string, bitrate float64, eOptions *settings.AudioEncoder, input io.ReadCloser) {
 	var options []string
 	encoderSettings := strings.Split(eOptions.Options, " ")
-
-	input := decodeAudio(inFilename, audioTracks, startingTime, totalTime)
 
 	// Encoding options
 	if eOptions.UsesBitrate {
