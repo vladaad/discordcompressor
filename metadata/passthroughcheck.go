@@ -2,14 +2,18 @@ package metadata
 
 import (
 	"github.com/vladaad/discordcompressor/settings"
+	"github.com/vladaad/discordcompressor/utils"
 )
 
 func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate float64, videoStats *VidStats, startingTime float64, totalTime float64, vEncoder *settings.Encoder, aEncoder *settings.AudioEncoder) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
 	audioCompatible, videoCompatible = false, false
-	// If bitrate wasn't able to be analyzed, analyze it xd
+	// If bitrate wasn't able to be analyzed, analyze it
 	if (videoStats.AudioBitrate == 0 || videoStats.VideoBitrate == 0) && videoStats.AudioTracks != 0 {
 		videoStats.AudioBitrate = AnalyzeAudio(filename)
 	}
+	format := findCurrentFormat(vEncoder.Container)
+	audioFmt := findACodec(videoStats.AudioCodec, format)
+	videoFmt := findVCodec(videoStats.VideoCodec, format)
 	// VB calc
 	if videoStats.AudioTracks != 0 {
 		videoStats.VideoBitrate = videoStats.Bitrate - videoStats.AudioBitrate
@@ -19,7 +23,7 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate f
 	// To save you from understanding this spaghetti, the audio has to be:
 	// The same codec as would normally be encoded
 	// Below max bitrate
-	if videoStats.AudioCodec == aEncoder.CodecName && videoStats.AudioBitrate < aEncoder.MaxBitrate && videoStats.AudioTracks != 0 {
+	if audioFmt != nil && videoStats.AudioBitrate < aEncoder.MaxBitrate && videoStats.AudioTracks != 0 {
 		audioCompatible = true
 		audioBitrateIn = videoStats.AudioBitrate
 	}
@@ -29,7 +33,7 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate f
 	// Video bitrate must be detected
 	// Audio should be passed through too
 	// Video bitrate must be below total bitrate
-	if vEncoder.CodecName == videoStats.VideoCodec && (videoStats.Pixfmt == "yuv420p" || videoStats.Pixfmt == vEncoder.Pixfmt) {
+	if videoFmt != nil && utils.Contains(videoStats.Pixfmt, videoFmt.PixFmts) {
 		if audioCompatible && bitrate < videoStats.Bitrate {
 			videoCompatible = true
 		} else if videoStats.VideoBitrate < bitrate - audioBitrateIn {
@@ -43,4 +47,33 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate f
 	}
 
 	return audioCompatible, videoCompatible, audioBitrateIn
+}
+
+// yes there are better ways to do this but I am lazy
+
+func findCurrentFormat(container string) *settings.Format {
+	for i := range settings.Advanced.CompatibleFormats {
+		if settings.Advanced.CompatibleFormats[i].Container == container {
+			return settings.Advanced.CompatibleFormats[i]
+		}
+	}
+	return nil
+}
+
+func findVCodec(codec string, format *settings.Format) *settings.VideoCodec {
+	for i := range format.CompatibleVideoCodecs {
+		if format.CompatibleVideoCodecs[i].Name == codec {
+			return format.CompatibleVideoCodecs[i]
+		}
+	}
+	return nil
+}
+
+func findACodec(codec string, format *settings.Format) *settings.AudioCodec {
+	for i := range format.CompatibleAudioCodecs {
+		if format.CompatibleAudioCodecs[i].Name == codec {
+			return format.CompatibleAudioCodecs[i]
+		}
+	}
+	return nil
 }

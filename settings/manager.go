@@ -17,6 +17,7 @@ func initStorage() {
 		General:   General,
 		Decoding:  Decoding,
 		Encoding:  Encoding,
+		Advanced:  Advanced,
 	}
 }
 

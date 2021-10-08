@@ -32,3 +32,12 @@ func GenUUID() string {
 	cleaned := strings.ReplaceAll(raw.String(), "-", "")
 	return cleaned
 }
+
+func Contains(input string, list []string) bool {
+	for i := range list {
+		if input == list[i] {
+			return true
+		}
+	}
+	return false
+}

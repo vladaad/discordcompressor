@@ -6,6 +6,7 @@ type fileformat struct {
 	General   *general
 	Decoding  *decoding
 	Encoding  *encoding
+	Advanced  *advanced
 }
 
 var MixTracks bool
