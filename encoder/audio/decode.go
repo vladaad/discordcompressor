@@ -3,6 +3,7 @@ package audio
 import (
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -10,7 +11,7 @@ import (
 	"strings"
 )
 
-func extractAudio (inFilename string, outFilename string, encoder string, audioTracks int, startingTime float64, totalTime float64) {
+func decodeAudio (inFilename string, audioTracks int, startingTime float64, totalTime float64) io.ReadCloser {
 	var options []string
 	times := metadata.AppendTimes(startingTime, totalTime)
 	if settings.Debug {
@@ -27,11 +28,7 @@ func extractAudio (inFilename string, outFilename string, encoder string, audioT
 	options = append(options, "-i", inFilename)
 
 	// Encoding options
-	if encoder != "" {
-		options = append(options,
-			"-c:a", encoder,
-		)
-	}
+	options = append(options, "-c:a", "pcm_s16le")
 	// Trackmix
 	if settings.MixTracks && audioTracks > 1 {
 		var filter []string
@@ -47,28 +44,23 @@ func extractAudio (inFilename string, outFilename string, encoder string, audioT
 
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
-	options = append(options, outFilename)
+	options = append(options, "-f", "wav", "-")
 
 	if settings.Debug || settings.DryRun {
 		log.Println(options)
 	}
 
 	// Running
-	if !settings.DryRun {
-		cmd := exec.Command(settings.General.FFmpegExecutable, options...)
+	cmd := exec.Command(settings.General.FFmpegExecutable, options...)
+	pipe, _ := cmd.StdoutPipe()
 
-		if settings.ShowStdOut {
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-		}
-
-		err := cmd.Start()
-		if err != nil {
-			panic(err)
-		}
-		err = cmd.Wait()
-		if err != nil {
-			panic(err)
-		}
+	if settings.Debug {
+		cmd.Stderr = os.Stderr
 	}
+
+	err := cmd.Start()
+	if err != nil {
+		panic(err)
+	}
+	return pipe
 }

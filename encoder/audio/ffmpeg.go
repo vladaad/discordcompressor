@@ -1,7 +1,6 @@
 package audio
 
 import (
-	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
 	"log"
 	"os"
@@ -13,14 +12,8 @@ import (
 func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTracks int, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) {
 	var options []string
 	encoderSettings := strings.Split(eOptions.Options, " ")
-	times := metadata.AppendTimes(startingTime, totalTime)
 
-	tempFilename := inFilename + ".temp.wav"
-	useTempFile := false
-	if settings.MixTracks && audioTracks > 1 {
-		extractAudio(inFilename, tempFilename, "", audioTracks, startingTime, totalTime)
-		useTempFile = true
-	}
+	input := decodeAudio(inFilename, audioTracks, startingTime, totalTime)
 
 	// Input options
 	if settings.Debug {
@@ -33,12 +26,7 @@ func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTrac
 		)
 	}
 	options = append(options, "-y")
-	options = append(options, times...)
-	if useTempFile {
-		options = append(options, "-i", tempFilename)
-	} else {
-		options = append(options, "-i", inFilename)
-	}
+	options = append(options, "-i", "-")
 
 	// Encoding options
 	options = append(options,
@@ -65,6 +53,8 @@ func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTrac
 	if !settings.DryRun {
 		cmd := exec.Command(settings.General.FFmpegExecutable, options...)
 
+		cmd.Stdin = input
+
 		if settings.ShowStdOut {
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
@@ -77,13 +67,6 @@ func encFFmpeg(inFilename string, outFilename string, bitrate float64, audioTrac
 		err = cmd.Wait()
 		if err != nil {
 			panic(err)
-		}
-
-		if useTempFile {
-			err = os.Remove(tempFilename)
-			if err != nil {
-				panic("Failed to remove temporary audio file")
-			}
 		}
 	}
 }
