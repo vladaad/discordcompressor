@@ -110,7 +110,12 @@ func Encode(filename string, audioFilename string, logFilename string, pass int,
 		default:
 			null = "/dev/null"
 		}
-		options = append(options, "-f", "matroska", null) // -f null can break 2pass w/ mkv for whatever reason
+		options = append(options, "-f", "null", null) // -f null can break 2pass w/ mkv for whatever reason
+	}
+
+	// WEBM H264+AAC workaround
+	if pass != 1 && eOptions.Container == "webm" {
+		options = append(options, "-f", "matroska")
 	}
 
 	if settings.Debug || settings.DryRun {
