@@ -156,6 +156,7 @@ func compress(inVideo string) bool {
 		log.Println("Audio tracks: " + strconv.Itoa(videoStats.AudioTracks))
 		if videoStats.AudioTracks != 0 {
 			log.Println(videoStats.AudioCodec + ", " + strconv.FormatFloat(videoStats.AudioBitrate, 'f', 1, 64) + "k")
+			log.Println(strconv.Itoa(videoStats.SampleRate) + "hz " + strconv.Itoa(videoStats.AudioChannels) + "ch")
 		}
 	}
 

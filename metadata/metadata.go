@@ -3,6 +3,7 @@ package metadata
 import (
 	"encoding/json"
 	"github.com/vladaad/discordcompressor/settings"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -20,6 +21,8 @@ type Stream struct {
 	Height int `json:"height"`
 	Pixfmt string `json:"pix_fmt"`
 	Framerate string `json:"r_frame_rate"`
+	Samplerate string `json:"sample_rate"`
+	Channels int `json:"channels"`
 	Bitrate string `json:"bit_rate"`
 }
 
@@ -37,6 +40,8 @@ type VidStats struct {
 	AudioTracks  int
 	AudioCodec   string
 	AudioBitrate float64
+	SampleRate   int
+	AudioChannels int
 	VideoCodec   string
 	VideoBitrate float64
 }
@@ -63,6 +68,7 @@ func GetStats(filepath string, audioonly bool) *VidStats {
 
 	err = json.Unmarshal(probe, &probeOutput)
 	if err != nil {
+		log.Println(err)
 		panic("Failed to parse JSON")
 	}
 
@@ -83,10 +89,12 @@ func GetStats(filepath string, audioonly bool) *VidStats {
 	stats.Bitrate, _ = strconv.ParseFloat(probeOutput.Format.Bitrate, 64)
 	// Audio
 	stats.AudioTracks = countStreams("audio", probeOutput.Streams)
-	if stats.AudioTracks != 0 && !settings.MixTracks {
+	if stats.AudioTracks != 0 {
 		audioStream := findFirstStream("audio", probeOutput.Streams)
 		stats.AudioCodec = audioStream.CodecName
 		stats.AudioBitrate, _ = strconv.ParseFloat(audioStream.Bitrate, 64)
+		stats.SampleRate, _ = strconv.Atoi(audioStream.Samplerate)
+		stats.AudioChannels = audioStream.Channels
 	}
 
 	// Bitrates -> k
