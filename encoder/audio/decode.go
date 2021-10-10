@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func decodeAudio (inFilename string, startingTime float64, totalTime float64, videoStats *metadata.VidStats) io.ReadCloser {
+func decodeAudio (inFilename string, startingTime float64, totalTime float64, volume string, videoStats *metadata.VidStats) io.ReadCloser {
 	var options []string
 	dontDownmix := []int{1, 2, 6, 8}
 
@@ -35,7 +35,7 @@ func decodeAudio (inFilename string, startingTime float64, totalTime float64, vi
 	if settings.MixTracks && videoStats.AudioTracks > 1 {
 		mixTracks = true
 	}
-	filters, mapping := filters(mixTracks, videoStats)
+	filters, mapping := filters(mixTracks, videoStats, volume)
 
 	if filters != "" {options = append(options, "-filter_complex", filters)}
 	options = append(options, "-map", mapping)

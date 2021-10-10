@@ -11,7 +11,7 @@ func EncodeAudio (inFilename string, UUID string, inBitrate float64, container s
 	// filename
 	outFilenameBase := UUID + "."
 	// start decoding
-	dec := decodeAudio(inFilename, startingTime, totalTime, stats)
+	dec := decodeAudio(inFilename, startingTime, totalTime, "", stats)
 	// encode
 	switch eOptions.Type {
 	case "ffmpeg":
