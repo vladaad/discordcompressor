@@ -3,16 +3,17 @@ package audio
 import (
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
+	"github.com/vladaad/discordcompressor/utils"
 	"io"
 	"log"
 	"os"
 	"os/exec"
-	"strconv"
-	"strings"
 )
 
-func decodeAudio (inFilename string, audioTracks int, startingTime float64, totalTime float64) io.ReadCloser {
+func decodeAudio (inFilename string, startingTime float64, totalTime float64, videoStats *metadata.VidStats) io.ReadCloser {
 	var options []string
+	dontDownmix := []int{1, 2, 6, 8}
+
 	times := metadata.AppendTimes(startingTime, totalTime)
 	if settings.Debug {
 		options = append(options,
@@ -29,22 +30,25 @@ func decodeAudio (inFilename string, audioTracks int, startingTime float64, tota
 
 	// Encoding options
 	options = append(options, "-c:a", "pcm_s16le")
-	// Trackmix
-	if settings.MixTracks && audioTracks > 1 {
-		var filter []string
-		for i := 0; i < audioTracks; i++ {
-			filter = append(filter, "[0:a:" + strconv.Itoa(i) + "]")
-		}
-		filter = append(filter, "amix=inputs=", strconv.Itoa(audioTracks))
-		filter = append(filter, "[out]")
-		options = append(options, "-filter_complex", strings.Join(filter, ""), "-map", "[out]")
-	} else {
-		options = append(options, "-map", "0:a:0")
+	// Filters
+	mixTracks := false
+	if settings.MixTracks && videoStats.AudioTracks > 1 {
+		mixTracks = true
 	}
+	filters, mapping := filters(mixTracks, videoStats)
 
+	options = append(options, "-filter_complex", filters)
+	options = append(options, "-map", mapping)
+
+	// Mapping
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
 	options = append(options, "-f", "wav", "-")
+
+	if !utils.ContainsInt(videoStats.AudioChannels, dontDownmix) || mixTracks {
+		options = append(options, "-ac", "2")
+	}
+	options = append(options, "-ar", "48000")
 
 	if settings.Debug || settings.DryRun {
 		log.Println(options)

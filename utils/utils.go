@@ -41,3 +41,12 @@ func Contains(input string, list []string) bool {
 	}
 	return false
 }
+
+func ContainsInt(input int, list []int) bool {
+	for i := range list {
+		if input == list[i] {
+			return true
+		}
+	}
+	return false
+}

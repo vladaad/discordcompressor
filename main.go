@@ -181,7 +181,7 @@ func compress(inVideo string) bool {
 	var audioFile string
 	if !outTarget.AudioPassthrough && videoStats.AudioTracks != 0 {
 		log.Println(prefix + "Encoding audio...")
-		outTarget.AudioBitrate, audioFile = audio.EncodeAudio(inVideo, UUID, outTarget.AudioBitrate, videoStats.AudioTracks, videoEncoder.Container, audioEncoder, startingTime, totalTime)
+		outTarget.AudioBitrate, audioFile = audio.EncodeAudio(inVideo, UUID, outTarget.AudioBitrate, videoEncoder.Container, audioEncoder, videoStats, startingTime, totalTime)
 	} else if !outTarget.AudioPassthrough {
 		outTarget.AudioBitrate = 0
 		hasAudio = false

@@ -7,11 +7,11 @@ import (
 	"os"
 )
 
-func EncodeAudio (inFilename string, UUID string, inBitrate float64, audioTracks int, container string, eOptions *settings.AudioEncoder, startingTime float64, totalTime float64) (outBitrate float64, outFilename string) {
+func EncodeAudio (inFilename string, UUID string, inBitrate float64, container string, eOptions *settings.AudioEncoder, stats *metadata.VidStats, startingTime float64,  totalTime float64) (outBitrate float64, outFilename string) {
 	// filename
 	outFilenameBase := UUID + "."
 	// start decoding
-	dec := decodeAudio(inFilename, audioTracks, startingTime, totalTime)
+	dec := decodeAudio(inFilename, startingTime, totalTime, stats)
 	// encode
 	switch eOptions.Type {
 	case "ffmpeg":
