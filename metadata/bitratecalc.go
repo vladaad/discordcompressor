@@ -19,7 +19,7 @@ func CalcTotalBitrate(size float64, duration float64) (float64, bool) {
 	return bitrate, false
 }
 
-func CalcAudioBitrate(targetBitrate float64, encoder settings.AudioEncoder, audioChannels int) float64 {
+func CalcAudioBitrate(targetBitrate float64, encoder *settings.AudioEncoder, audioChannels int) float64 {
 	// Audio calc
     mult := 1.0
     if audioChannels == 1 {
