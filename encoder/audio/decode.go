@@ -29,7 +29,7 @@ func decodeAudio (inFilename string, startingTime float64, totalTime float64, vi
 	options = append(options, "-i", inFilename)
 
 	// Encoding options
-	options = append(options, "-c:a", "pcm_s16le")
+	options = append(options, "-c:a", "pcm_s32le")
 	// Filters
 	mixTracks := false
 	if settings.MixTracks && videoStats.AudioTracks > 1 {
@@ -37,18 +37,18 @@ func decodeAudio (inFilename string, startingTime float64, totalTime float64, vi
 	}
 	filters, mapping := filters(mixTracks, videoStats)
 
-	options = append(options, "-filter_complex", filters)
+	if filters != "" {options = append(options, "-filter_complex", filters)}
 	options = append(options, "-map", mapping)
 
 	// Mapping
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
-	options = append(options, "-f", "wav", "-")
 
 	if !utils.ContainsInt(videoStats.AudioChannels, dontDownmix) || mixTracks {
 		options = append(options, "-ac", "2")
 	}
 	options = append(options, "-ar", "48000")
+	options = append(options, "-f", "wav", "-")
 
 	if settings.Debug || settings.DryRun {
 		log.Println(options)
