@@ -1,6 +1,6 @@
 @echo off
 if "%1" == "" (
-    set version=0.4
+    set version=dev
 ) else (
     set version=%1
 )
