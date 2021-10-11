@@ -48,14 +48,13 @@ func Encode(filename string, audioFilename string, logFilename string, pass int,
 		options = append(options, "-i", audioFilename)
 	}
 
-	// Video filters
-	filters := filters(pass, videoStats, limit, eOptions.Pixfmt)
-	if filters != "" {
-		options = append(options, "-vf", filters)
-	}
-
 	// Video encoding options
 	if !oTarget.VideoPassthrough {
+		// Video filters
+		filters := filters(pass, videoStats, limit, eOptions.Pixfmt)
+		if filters != "" {
+			options = append(options, "-vf", filters)
+		}
 		options = append(options,
 			"-c:v", eOptions.Encoder,
 			eOptions.PresetCmd, eTarget.Preset,
