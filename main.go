@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/kardianos/osext"
 	"github.com/vladaad/discordcompressor/build"
 	"github.com/vladaad/discordcompressor/encoder/audio"
 	"github.com/vladaad/discordcompressor/encoder/video"
@@ -29,8 +28,13 @@ var wg sync.WaitGroup
 var runningInstances int
 
 func init() {
+	// settings dir creation
+	err := os.MkdirAll(utils.SettingsDir(), 0755)
+	if err != nil {
+		panic("Failed to create settings directory")
+	}
 	// Log setup
-	logFileName, _ := osext.ExecutableFolder()
+	logFileName := utils.SettingsDir()
 	logFileName += "/dcomp.log"
 	file, err := os.Create(logFileName)
 	if err != nil {

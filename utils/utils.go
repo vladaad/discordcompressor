@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"log"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -60,4 +61,17 @@ func NullDir() string {
 		null = "/dev/null"
 	}
 	return null
+}
+
+func SettingsDir() string {
+	var dir string
+	switch runtime.GOOS {
+	case "windows":
+		dir = os.Getenv("APPDATA") + "\\vladaad\\dc"
+	default:
+		home, _ := os.UserHomeDir()
+		dir = home + "/.config/vladaad/dc"
+	}
+
+	return dir
 }
