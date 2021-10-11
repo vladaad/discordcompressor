@@ -4,6 +4,7 @@ var Advanced = initAdvanced()
 
 func initAdvanced () *advanced{
 	return &advanced{
+		NormalizeAudio: false,
 		CompatibleFormats: []*Format{{
 			Container: "mp4",
 			CompatibleVideoCodecs: []*VideoCodec{{
@@ -38,6 +39,7 @@ func initAdvanced () *advanced{
 }
 
 type advanced struct {
+	NormalizeAudio    bool
 	CompatibleFormats []*Format
 }
 

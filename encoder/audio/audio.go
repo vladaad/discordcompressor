@@ -10,8 +10,14 @@ import (
 func EncodeAudio (inFilename string, UUID string, inBitrate float64, container string, eOptions *settings.AudioEncoder, stats *metadata.VidStats, startingTime float64,  totalTime float64) (outBitrate float64, outFilename string) {
 	// filename
 	outFilenameBase := UUID + "."
+	// normalize audio
+	lnParams := new(LoudnormParams)
+	if settings.Advanced.NormalizeAudio {
+		dec := decodeAudio(inFilename, startingTime, totalTime, false, stats, lnParams)
+		lnParams = detectVolume(dec)
+	}
 	// start decoding
-	dec := decodeAudio(inFilename, startingTime, totalTime, "", stats)
+	dec := decodeAudio(inFilename, startingTime, totalTime, settings.Advanced.NormalizeAudio, stats, lnParams)
 	// encode
 	switch eOptions.Type {
 	case "ffmpeg":

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func filters(mixTracks bool, videoStats *metadata.VidStats, volume string) (filter string, mapping string) {
+func filters(mixTracks bool, normalize bool, videoStats *metadata.VidStats, lnParams *LoudnormParams) (filter string, mapping string) {
 	var filters []string
 	var inputs []string
 	if mixTracks {
@@ -26,10 +26,16 @@ func filters(mixTracks bool, videoStats *metadata.VidStats, volume string) (filt
 		inputs = []string{"[mixed]"}
 		mapping = inputs[0]
 	}
-	if volume != "" {
+	if normalize {
 		var filter []string
 		filter = append(filter, inputs...)
-		filter = append(filter, "volume=" + volume)
+		filter = append(filter, "loudnorm=linear=true:i=-14:lra=7:tp=-1")
+
+		filter = append(filter, ":measured_i=" + lnParams.IL)
+		filter = append(filter, ":measured_lra=" + lnParams.LRA)
+		filter = append(filter, ":measured_tp=" + lnParams.TP)
+		filter = append(filter, ":measured_thresh=" + lnParams.Thresh)
+
 		filter = append(filter, "[voladj]")
 		filters = append(filters, strings.Join(filter, ""))
 		inputs = []string{"[voladj]"}

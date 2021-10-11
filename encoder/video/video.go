@@ -3,11 +3,11 @@ package video
 import (
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
+	"github.com/vladaad/discordcompressor/utils"
 	"log"
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 	"strconv"
 	"strings"
 )
@@ -103,14 +103,7 @@ func Encode(filename string, audioFilename string, logFilename string, pass int,
 	if pass != 1 {
 		options = append(options, outputFilename)
 	} else {
-		var null string
-		switch runtime.GOOS {
-		case "windows":
-			null = "NUL"
-		default:
-			null = "/dev/null"
-		}
-		options = append(options, "-f", "null", null) // -f null can break 2pass w/ mkv for whatever reason
+		options = append(options, "-f", "null", utils.NullDir())
 	}
 
 	// WEBM H264+AAC workaround

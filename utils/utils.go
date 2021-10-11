@@ -50,3 +50,14 @@ func ContainsInt(input int, list []int) bool {
 	}
 	return false
 }
+
+func NullDir() string {
+	var null string
+	switch runtime.GOOS {
+	case "windows":
+		null = "NUL"
+	default:
+		null = "/dev/null"
+	}
+	return null
+}
