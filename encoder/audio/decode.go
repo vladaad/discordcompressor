@@ -44,7 +44,7 @@ func decodeAudio (inFilename string, startingTime float64, totalTime float64, no
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
 
-	if !utils.ContainsInt(videoStats.AudioChannels, dontDownmix) || mixTracks {
+	if !utils.ContainsInt(videoStats.AudioChannels, dontDownmix) || (mixTracks && videoStats.AudioTracks > 1) {
 		options = append(options, "-ac", "2")
 	}
 	options = append(options, "-ar", "48000")

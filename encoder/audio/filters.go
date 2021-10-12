@@ -25,6 +25,21 @@ func filters(mixTracks bool, normalize bool, videoStats *metadata.VidStats, lnPa
 		filters = append(filters, strings.Join(filter, ""))
 		inputs = []string{"[mixed]"}
 		mapping = inputs[0]
+	} else if videoStats.AudioChannels > 2 { // this is intentional, otherwise downmix is done "normally" via -ac 2
+		var filter []string
+		filter = append(filter, inputs...)
+		switch videoStats.AudioChannels {
+		case 6:
+			filter = append(filter, "volume=1.6,pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE")
+		case 8:
+			filter = append(filter, "volume=1.6,pan=stereo|FL= 0.5*FC+0.3*FLC+0.3*FL+0.3*BL+0.3*SL+0.5*LFE|FR=0.5*FC+0.3*FRC+0.3*FR+0.3*BR+0.3*SR+0.5*LFE")
+		default:
+			filter = nil
+		}
+		filter = append(filter, "[downmixed]")
+		filters = append(filters, strings.Join(filter, ""))
+		inputs = []string{"[downmixed]"}
+		mapping = inputs[0]
 	}
 	if normalize {
 		var filter []string
