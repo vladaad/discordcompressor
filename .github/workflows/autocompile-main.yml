@@ -20,34 +20,34 @@ jobs:
 
     - name: Build - Windows 64bit
       run: GOOS=windows GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o "discordcompressor-win64.exe" -v
-      
+
     - name: Build - Windows 32bit
       run: GOOS=windows GOARCH=386 go build -trimpath -ldflags "-s -w" -o "discordcompressor-win32.exe" -v
-      
+
     - name: Build - Linux 64bit
       run: GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o "discordcompressor-linux64" -v
-      
+
     - name: Build - Linux 32bit
       run: GOOS=linux GOARCH=386 go build -trimpath -ldflags "-s -w" -o "discordcompressor-linux32" -v
-      
+
     - name: Upload
       uses: actions/upload-artifact@master
       with:
         name: Windows 64bit
         path: discordcompressor-win64.exe
-        
+
     - name: Upload
       uses: actions/upload-artifact@master
       with:
         name: Windows 32bit
         path: discordcompressor-win32.exe
-        
+
     - name: Upload
       uses: actions/upload-artifact@master
       with:
         name: Linux 64bit
         path: discordcompressor-linux64
-        
+
     - name: Upload
       uses: actions/upload-artifact@master
       with:

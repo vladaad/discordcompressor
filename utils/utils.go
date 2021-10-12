@@ -2,9 +2,12 @@ package utils
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"log"
+	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 func OpenURL(url string) {
@@ -23,4 +26,52 @@ func OpenURL(url string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func GenUUID() string {
+	raw := uuid.New()
+	cleaned := strings.ReplaceAll(raw.String(), "-", "")
+	return cleaned
+}
+
+func Contains(input string, list []string) bool {
+	for i := range list {
+		if input == list[i] {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsInt(input int, list []int) bool {
+	for i := range list {
+		if input == list[i] {
+			return true
+		}
+	}
+	return false
+}
+
+func NullDir() string {
+	var null string
+	switch runtime.GOOS {
+	case "windows":
+		null = "NUL"
+	default:
+		null = "/dev/null"
+	}
+	return null
+}
+
+func SettingsDir() string {
+	var dir string
+	switch runtime.GOOS {
+	case "windows":
+		dir = os.Getenv("APPDATA") + "\\vladaad\\dc"
+	default:
+		home, _ := os.UserHomeDir()
+		dir = home + "/.config/vladaad/dc"
+	}
+
+	return dir
 }

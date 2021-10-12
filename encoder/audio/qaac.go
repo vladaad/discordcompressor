@@ -2,6 +2,7 @@ package audio
 
 import (
 	"github.com/vladaad/discordcompressor/settings"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -9,22 +10,20 @@ import (
 	"strings"
 )
 
-func encQaac(inFilename string, bitrate float64) string {
+func encQaac(outFilename string, bitrate float64, eOptions *settings.AudioEncoder, input io.ReadCloser) {
 	var options []string
-	encoderSettings := strings.Split(settings.SelectedAEncoder.Options, " ")
-
-	tempFilename := inFilename + ".temp.wav"
-	extractAudio(inFilename, tempFilename, "")
+	encoderSettings := strings.Split(eOptions.Options, " ")
 
 	// Encoding options
-	if settings.SelectedAEncoder.UsesBitrate {
+	if eOptions.UsesBitrate {
 		options = append(options, "-a", strconv.FormatFloat(bitrate, 'f', -1, 64))
 	}
-	if settings.SelectedAEncoder.Options != "" {
+	if eOptions.Options != "" {
 		options = append(options, encoderSettings...)
 	}
-	// Output options
-	options = append(options, tempFilename)
+	// Input & output options
+	options = append(options, "-")
+	options = append(options, "-o", outFilename)
 
 	if settings.Debug || settings.DryRun {
 		log.Println(options)
@@ -34,8 +33,12 @@ func encQaac(inFilename string, bitrate float64) string {
 	if !settings.DryRun {
 		cmd := exec.Command(settings.General.QaacExecutable, options...)
 
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		cmd.Stdin = input
+
+		if settings.ShowStdOut {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		}
 
 		err := cmd.Start()
 		if err != nil {
@@ -45,11 +48,5 @@ func encQaac(inFilename string, bitrate float64) string {
 		if err != nil {
 			panic(err)
 		}
-
-		err = os.Remove(tempFilename)
-		if err != nil {
-				panic("Failed to remove temporary audio file")
-		}
 	}
-	return inFilename + ".temp.m4a"
 }

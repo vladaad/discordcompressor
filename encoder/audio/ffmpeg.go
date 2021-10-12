@@ -1,8 +1,8 @@
 package audio
 
 import (
-	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -10,17 +10,9 @@ import (
 	"strings"
 )
 
-func encFFmpeg(inFilename string, outFilename string, bitrate float64) {
+func encFFmpeg(outFilename string, bitrate float64, eOptions *settings.AudioEncoder, input io.ReadCloser) {
 	var options []string
-	encoderSettings := strings.Split(settings.SelectedAEncoder.Options, " ")
-	times := metadata.AppendTimes()
-
-	tempFilename := inFilename + ".temp.wav"
-	useTempFile := false
-	if settings.MixTracks && settings.VideoStats.AudioTracks > 1 {
-		extractAudio(inFilename, tempFilename, "")
-		useTempFile = true
-	}
+	encoderSettings := strings.Split(eOptions.Options, " ")
 
 	// Input options
 	if settings.Debug {
@@ -33,21 +25,16 @@ func encFFmpeg(inFilename string, outFilename string, bitrate float64) {
 		)
 	}
 	options = append(options, "-y")
-	options = append(options, times...)
-	if useTempFile {
-		options = append(options, "-i", tempFilename)
-	} else {
-		options = append(options, "-i", inFilename)
-	}
+	options = append(options, "-i", "-")
 
 	// Encoding options
 	options = append(options,
-		"-c:a", settings.SelectedAEncoder.Encoder,
+		"-c:a", eOptions.Encoder,
 	)
-	if settings.SelectedAEncoder.Options != "" {
+	if eOptions.Options != "" {
 		options = append(options, encoderSettings...)
 	}
-	if settings.SelectedAEncoder.UsesBitrate {
+	if eOptions.UsesBitrate {
 		options = append(options,
 			"-b:a", strconv.FormatFloat(bitrate, 'f', -1, 64) + "k",
 		)
@@ -65,8 +52,12 @@ func encFFmpeg(inFilename string, outFilename string, bitrate float64) {
 	if !settings.DryRun {
 		cmd := exec.Command(settings.General.FFmpegExecutable, options...)
 
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		cmd.Stdin = input
+
+		if settings.ShowStdOut {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		}
 
 		err := cmd.Start()
 		if err != nil {
@@ -75,13 +66,6 @@ func encFFmpeg(inFilename string, outFilename string, bitrate float64) {
 		err = cmd.Wait()
 		if err != nil {
 			panic(err)
-		}
-
-		if useTempFile {
-			err = os.Remove(tempFilename)
-			if err != nil {
-				panic("Failed to remove temporary audio file")
-			}
 		}
 	}
 }

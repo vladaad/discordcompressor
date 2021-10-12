@@ -5,24 +5,35 @@ import (
 	"github.com/vladaad/discordcompressor/settings"
 	"log"
 	"os"
-	"path"
-	"strings"
 )
 
-func EncodeAudio (inFilename string, inBitrate float64) (outBitrate float64, outFilename string) {
+func EncodeAudio (inFilename string, UUID string, inBitrate float64, container string, eOptions *settings.AudioEncoder, stats *metadata.VidStats, startingTime float64,  totalTime float64) (outBitrate float64, outFilename string) {
 	// filename
-	outFilenameBase := strings.TrimSuffix(inFilename, path.Ext(inFilename)) + ".audio."
+	outFilenameBase := UUID + "."
+	// normalize audio
+	lnParams := new(LoudnormParams)
+	if settings.Advanced.NormalizeAudio {
+		dec := decodeAudio(inFilename, startingTime, totalTime, false, stats, lnParams)
+		lnParams = detectVolume(dec)
+	}
+	// start decoding
+	dec := decodeAudio(inFilename, startingTime, totalTime, settings.Advanced.NormalizeAudio, stats, lnParams)
 	// encode
-	switch settings.SelectedAEncoder.Type {
+	switch eOptions.Type {
 	case "ffmpeg":
-		outFilename = outFilenameBase + settings.SelectedVEncoder.Container
-		encFFmpeg(inFilename, outFilename, inBitrate)
+		outFilename = outFilenameBase + container
+		encFFmpeg(outFilename, inBitrate, eOptions, dec)
 	case "qaac":
-		outFilename = encQaac(inFilename, inBitrate)
+		outFilename = outFilenameBase + "m4a"
+		encQaac(outFilename, inBitrate, eOptions, dec)
 	default:
-		log.Println("Encoder type " + settings.SelectedAEncoder.Type + " not found")
+		log.Println("Encoder type " + eOptions.Type + " not found")
 		os.Exit(0)
 	}
 	// bitrate
-	return metadata.GetStats(outFilename, true).Bitrate, outFilename
+	if !settings.DryRun {
+		return metadata.GetStats(outFilename, true).Bitrate, outFilename
+	} else {
+		return inBitrate, outFilename
+	}
 }

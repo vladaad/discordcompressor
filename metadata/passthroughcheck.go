@@ -2,31 +2,30 @@ package metadata
 
 import (
 	"github.com/vladaad/discordcompressor/settings"
-	"log"
+	"github.com/vladaad/discordcompressor/utils"
 )
 
-func CheckStreamCompatibility(filename string, audioBitrateIn float64) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
+func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate float64, videoStats *VidStats, startingTime float64, totalTime float64, vEncoder *settings.Encoder, aEncoder *settings.AudioEncoder) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
 	audioCompatible, videoCompatible = false, false
-	// If bitrate wasn't able to be analyzed, analyze it xd
-	if (settings.VideoStats.AudioBitrate == 0 || settings.VideoStats.VideoBitrate == 0) && settings.VideoStats.AudioTracks != 0 {
-		settings.VideoStats.AudioBitrate = AnalyzeAudio(filename)
+	// If bitrate wasn't able to be analyzed, analyze it
+	if (videoStats.AudioBitrate == 0 || videoStats.VideoBitrate == 0) && videoStats.AudioTracks != 0 {
+		videoStats.AudioBitrate = AnalyzeAudio(filename)
 	}
+	format := findCurrentFormat(vEncoder.Container)
+	audioFmt := findACodec(videoStats.AudioCodec, format)
+	videoFmt := findVCodec(videoStats.VideoCodec, format)
 	// VB calc
-	if settings.VideoStats.AudioTracks != 0 {
-		settings.VideoStats.VideoBitrate = settings.VideoStats.Bitrate - settings.VideoStats.AudioBitrate
+	if videoStats.AudioTracks != 0 {
+		videoStats.VideoBitrate = videoStats.Bitrate - videoStats.AudioBitrate
 	} else {
-		settings.VideoStats.VideoBitrate = settings.VideoStats.Bitrate
+		videoStats.VideoBitrate = videoStats.Bitrate
 	}
 	// To save you from understanding this spaghetti, the audio has to be:
 	// The same codec as would normally be encoded
 	// Below max bitrate
-	if settings.VideoStats.AudioCodec == settings.SelectedAEncoder.CodecName && settings.VideoStats.AudioBitrate < settings.SelectedAEncoder.MaxBitrate && settings.VideoStats.AudioTracks != 0 {
+	if audioFmt != nil && videoStats.AudioBitrate < aEncoder.MaxBitrate && videoStats.AudioTracks != 0 {
 		audioCompatible = true
-		audioBitrateIn = settings.VideoStats.AudioBitrate
-	}
-
-	if settings.VideoStats.AudioTracks > 1 {
-		log.Println("Multiple audio tracks detected! You can use -mixaudio to mix them into one")
+		audioBitrateIn = videoStats.AudioBitrate
 	}
 
 	// The conditions for video compatibility:
@@ -34,18 +33,47 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64) (audioCom
 	// Video bitrate must be detected
 	// Audio should be passed through too
 	// Video bitrate must be below total bitrate
-	if settings.SelectedVEncoder.CodecName == settings.VideoStats.VideoCodec && (settings.VideoStats.Pixfmt == "yuv420p" || settings.VideoStats.Pixfmt == settings.SelectedVEncoder.Pixfmt) {
-		if audioCompatible && settings.MaxTotalBitrate < settings.VideoStats.Bitrate {
+	if videoFmt != nil && utils.Contains(videoStats.Pixfmt, videoFmt.PixFmts) {
+		if audioCompatible && bitrate < videoStats.Bitrate {
 			videoCompatible = true
-		} else if settings.VideoStats.VideoBitrate < settings.MaxTotalBitrate - audioBitrateIn {
+		} else if videoStats.VideoBitrate < bitrate - audioBitrateIn {
 			videoCompatible = true
 		}
 	}
 
 	// I'm not dealing with times and passthrough, fuck that
-	if settings.Time != float64(0) || settings.Starttime != float64(0) {
+	if totalTime != float64(0) || startingTime != float64(0) {
 		audioCompatible, videoCompatible = false, false
 	}
 
 	return audioCompatible, videoCompatible, audioBitrateIn
+}
+
+// yes there are better ways to do this but I am lazy
+
+func findCurrentFormat(container string) *settings.Format {
+	for i := range settings.Advanced.CompatibleFormats {
+		if settings.Advanced.CompatibleFormats[i].Container == container {
+			return settings.Advanced.CompatibleFormats[i]
+		}
+	}
+	return nil
+}
+
+func findVCodec(codec string, format *settings.Format) *settings.VideoCodec {
+	for i := range format.CompatibleVideoCodecs {
+		if format.CompatibleVideoCodecs[i].Name == codec {
+			return format.CompatibleVideoCodecs[i]
+		}
+	}
+	return nil
+}
+
+func findACodec(codec string, format *settings.Format) *settings.AudioCodec {
+	for i := range format.CompatibleAudioCodecs {
+		if format.CompatibleAudioCodecs[i].Name == codec {
+			return format.CompatibleAudioCodecs[i]
+		}
+	}
+	return nil
 }

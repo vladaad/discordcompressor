@@ -3,7 +3,7 @@ package settings
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kardianos/osext"
+	"github.com/vladaad/discordcompressor/utils"
 	"os"
 )
 
@@ -17,13 +17,14 @@ func initStorage() {
 		General:   General,
 		Decoding:  Decoding,
 		Encoding:  Encoding,
+		Advanced:  Advanced,
 	}
 }
 
 func LoadSettings(version string) bool {
 	initStorage()
 
-	fileName, _ := osext.ExecutableFolder()
+	fileName := utils.SettingsDir()
 	fileName += "/settings"
 	if version != "" {
 		fileName += "-" + version
