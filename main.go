@@ -21,8 +21,9 @@ import (
 var reEncV bool
 var reEncA bool
 var targetSizeKbit float64
-var startingTime float64
-var totalTime float64
+var targetStartingTime float64
+var lastSeconds float64
+var targetTotalTime float64
 var input []string
 var wg sync.WaitGroup
 var runningInstances int
@@ -48,6 +49,7 @@ func init() {
 	settingsFile := flag.String("settings", "", "Selects the settings file to be used")
 	startTime := flag.Float64("ss", float64(0), "Sets the starting time")
 	time := flag.Float64("t", float64(0), "Sets the time to encode")
+	lastXSeconds := flag.Float64("last", float64(0), "Sets the time from the end to encode")
 	targetSize := flag.Float64("size", float64(-1), "Sets the target size in MB")
 	debug := flag.Bool("debug", false, "Prints extra info")
 	focus := flag.String("focus", "", "Sets the focus")
@@ -58,8 +60,9 @@ func init() {
 	flag.Parse()
 	// Settings loading
 	input = flag.Args()
-	startingTime = *startTime
-	totalTime = *time
+	targetStartingTime = *startTime
+	targetTotalTime = *time
+	lastSeconds = *lastXSeconds
 	settings.Debug = *debug
 	settings.Original = *original
 	settings.Focus = *focus
@@ -127,6 +130,8 @@ func main() {
 
 func compress(inVideo string) bool {
 	var prefix string
+	var totalTime float64
+	var startingTime float64
 	defer wg.Done()
 	// Logging
 	_, cleanName := path.Split(strings.ReplaceAll(inVideo, "\\", "/"))
@@ -142,14 +147,29 @@ func compress(inVideo string) bool {
 	videoStats := metadata.GetStats(inVideo, false)
 
 	// Checking time
-	if startingTime + totalTime > videoStats.Duration {
-		log.Println(prefix + "Invalid length!")
-		return false
-	}
-	if totalTime != 0 {
-		videoStats.Duration = totalTime
-	} else if startingTime != 0 {
-		videoStats.Duration -= startingTime
+	totalTime, startingTime = targetTotalTime, targetStartingTime
+	if settings.BatchMode && (totalTime != 0 || startingTime != 0) {
+		log.Fatalln("Cannot use time arguments with batch mode except -last!")
+	} else {
+		if lastSeconds != 0 && (totalTime != 0 || startingTime != 0) {
+			log.Println(prefix + "Cannot use -t or -ss with -last!")
+			return false
+		}
+		// LastSeconds
+		if lastSeconds != 0 {
+			startingTime = videoStats.Duration - lastSeconds
+			videoStats.Duration = lastSeconds
+		} else { // ss+t
+			if startingTime + totalTime > videoStats.Duration {
+				log.Println(prefix + "Invalid length!")
+				return false
+			}
+			if totalTime != 0 {
+				videoStats.Duration = totalTime
+			} else if startingTime != 0 {
+				videoStats.Duration -= startingTime
+			}
+		}
 	}
 
 	if settings.Debug {
