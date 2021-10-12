@@ -149,7 +149,7 @@ func compress(inVideo string) bool {
 	if totalTime != 0 {
 		videoStats.Duration = totalTime
 	} else if startingTime != 0 {
-		videoStats.Duration =- startingTime
+		videoStats.Duration -= startingTime
 	}
 
 	if settings.Debug {
