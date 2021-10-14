@@ -50,7 +50,7 @@ func init() {
 	// Parsing flags
 	settingsFile := flag.String("settings", "", "Selects the settings file to be used")
 	startTime := flag.Float64("ss", float64(0), "Sets the starting time")
-	time := flag.Float64("t", float64(0), "Sets the time to encode")
+	targetTime := flag.Float64("t", float64(0), "Sets the time to encode")
 	lastXSeconds := flag.Float64("last", float64(0), "Sets the time from the end to encode")
 	targetSize := flag.Float64("size", float64(-1), "Sets the target size in MB")
 	debug := flag.Bool("debug", false, "Prints extra info")
@@ -63,7 +63,7 @@ func init() {
 	// Settings loading
 	input = flag.Args()
 	targetStartingTime = *startTime
-	targetTotalTime = *time
+	targetTotalTime = *targetTime
 	lastSeconds = *lastXSeconds
 	settings.Debug = *debug
 	settings.Original = *original

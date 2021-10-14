@@ -10,7 +10,6 @@ import (
 // Stolen from https://github.com/Wieku/danser-go/app/settings
 
 var fileStorage *fileformat
-var fileName string
 
 func initStorage() {
 	fileStorage = &fileformat{
