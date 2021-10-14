@@ -9,8 +9,6 @@ import (
 
 func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pixfmt string) string {
 	var filters []string
-	var fpsfilters []string // scale,tmix,fps is faster than tmix,fps,scale
-	var resfilters []string
 	// FPS
 	FPS = videoStats.FPS
 	if float64(limit.FPSMax) < videoStats.FPS {
@@ -21,21 +19,23 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 		} else {
 			FPS = float64(limit.FPSMax)
 		}
-		fpsfilters = append(fpsfilters, "fps=" + strconv.FormatFloat(FPS, 'f', -1, 64))
+		filters = append(filters, "fps=" + strconv.FormatFloat(FPS, 'f', -1, 64))
+	}
+
+	if settings.Advanced.DeduplicateFrames {
+		maxframes := FPS - 1
+		if maxframes >= 1 {
+			filters = append(filters, "mpdecimate=max=" + strconv.FormatFloat(maxframes,'f', 0, 64))
+		}
 	}
 
 	// Resolution
 	if limit.VResMax < videoStats.Height {
 		if pass == 1 {
-			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=bilinear")
+			filters = append(filters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=bilinear")
 		} else {
-			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=lanczos")
+			filters = append(filters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=lanczos")
 		}
-	}
-
-	if !settings.Original {
-		filters = append(filters, fpsfilters...)
-		filters = append(filters, resfilters...)
 	}
 
 	// Yuv420p conversion
