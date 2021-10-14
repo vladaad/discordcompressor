@@ -29,7 +29,9 @@ var wg sync.WaitGroup
 var runningInstances int
 
 func init() {
-	// settings dir creation
+	// Update checker
+	utils.CheckForUpdates()
+	// Settings dir creation
 	err := os.MkdirAll(utils.SettingsDir(), 0755)
 	if err != nil {
 		panic("Failed to create settings directory")
