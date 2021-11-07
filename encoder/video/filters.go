@@ -11,7 +11,7 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 	var filters []string
 	// FPS
 	FPS = videoStats.FPS
-	if float64(limit.FPSMax) < videoStats.FPS {
+	if float64(limit.FPSMax) < videoStats.FPS && !settings.Original {
 		if settings.Encoding.HalveDownFPS {
 			for FPS > float64(limit.FPSMax) {
 				FPS /= 2
@@ -22,7 +22,7 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 		filters = append(filters, "fps=" + strconv.FormatFloat(FPS, 'f', -1, 64))
 	}
 
-	if settings.Advanced.DeduplicateFrames {
+	if settings.Advanced.DeduplicateFrames && !settings.Original {
 		maxframes := FPS - 1
 		if maxframes >= 1 {
 			filters = append(filters, "mpdecimate=max=" + strconv.FormatFloat(maxframes,'f', 0, 64))
@@ -30,7 +30,7 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 	}
 
 	// Resolution
-	if limit.VResMax < videoStats.Height {
+	if limit.VResMax < videoStats.Height && !settings.Original {
 		if pass == 1 {
 			filters = append(filters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=bilinear")
 		} else {
@@ -38,7 +38,7 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 		}
 	}
 
-	// Yuv420p conversion
+	// Pixfmt conversion
 	if videoStats.Pixfmt != pixfmt {
 		filters = append(filters, "format=" + pixfmt)
 	}
