@@ -7,13 +7,11 @@ import (
 	"strings"
 )
 
-func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pixfmt string) string {
+func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pixfmt string) (filter string, vertRes int, FPS float64) {
 	var filters []string
-	var fpsfilters []string // scale,tmix,fps is faster than tmix,fps,scale
-	var resfilters []string
 	// FPS
 	FPS = videoStats.FPS
-	if float64(limit.FPSMax) < videoStats.FPS {
+	if float64(limit.FPSMax) < videoStats.FPS && !settings.Original {
 		if settings.Encoding.HalveDownFPS {
 			for FPS > float64(limit.FPSMax) {
 				FPS /= 2
@@ -21,27 +19,31 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 		} else {
 			FPS = float64(limit.FPSMax)
 		}
-		fpsfilters = append(fpsfilters, "fps=" + strconv.FormatFloat(FPS, 'f', -1, 64))
+		filters = append(filters, "fps=" + strconv.FormatFloat(FPS, 'f', -1, 64))
 	}
 
-	// Resolution
-	if limit.VResMax < videoStats.Height {
-		if pass == 1 {
-			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=bilinear")
-		} else {
-			resfilters = append(resfilters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=lanczos")
+	if settings.Advanced.DeduplicateFrames && !settings.Original {
+		maxframes := FPS - 1
+		if maxframes >= 1 {
+			filters = append(filters, "mpdecimate=max=" + strconv.FormatFloat(maxframes,'f', 0, 64))
 		}
 	}
 
-	if !settings.Original {
-		filters = append(filters, fpsfilters...)
-		filters = append(filters, resfilters...)
+	vertRes = videoStats.Height
+	// Resolution
+	if limit.VResMax < videoStats.Height && !settings.Original {
+		vertRes = limit.VResMax
+		if pass == 1 {
+			filters = append(filters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=bilinear")
+		} else {
+			filters = append(filters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=lanczos")
+		}
 	}
 
-	// Yuv420p conversion
+	// Pixfmt conversion
 	if videoStats.Pixfmt != pixfmt {
 		filters = append(filters, "format=" + pixfmt)
 	}
 
-	return strings.Join(filters, ",")
+	return strings.Join(filters, ","), vertRes, FPS
 }

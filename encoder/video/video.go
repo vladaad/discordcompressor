@@ -19,9 +19,7 @@ type OutTarget struct {
 	AudioBitrate     float64
 }
 
-var FPS float64
-
-func Encode(filename string, audioFilename string, logFilename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget, startingTime float64, totalTime float64) bool {
+func Encode(filename string, audioFilename string, logFilename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget, aOptions *settings.AudioEncoder, startingTime float64, totalTime float64) bool {
 	var options []string
 	// Vars
 	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + eOptions.Container
@@ -49,11 +47,13 @@ func Encode(filename string, audioFilename string, logFilename string, pass int,
 	}
 
 	// Video encoding options
+	metaVertRes, FPS := videoStats.Height, videoStats.FPS
 	if !oTarget.VideoPassthrough {
+		var filter string
 		// Video filters
-		filters := filters(pass, videoStats, limit, eOptions.Pixfmt)
-		if filters != "" {
-			options = append(options, "-vf", filters)
+		filter, metaVertRes, FPS = filters(pass, videoStats, limit, eOptions.Pixfmt)
+		if filter != "" {
+			options = append(options, "-vf", filter)
 		}
 		options = append(options,
 			"-c:v", eOptions.Encoder,
@@ -92,6 +92,7 @@ func Encode(filename string, audioFilename string, logFilename string, pass int,
 	}
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
+	options = append(options, addMetadata(oTarget, videoStats, eOptions, metaVertRes, FPS, eTarget, aOptions)...)
 
 	// Faststart for MP4
 	if strings.ToLower(eOptions.Container) == "mp4" {

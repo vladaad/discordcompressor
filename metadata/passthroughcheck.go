@@ -34,7 +34,7 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate f
 	// Audio should be passed through too
 	// Video bitrate must be below total bitrate
 	if videoFmt != nil && utils.Contains(videoStats.Pixfmt, videoFmt.PixFmts) {
-		if audioCompatible && bitrate < videoStats.Bitrate {
+		if audioCompatible && bitrate > videoStats.Bitrate {
 			videoCompatible = true
 		} else if videoStats.VideoBitrate < bitrate - audioBitrateIn {
 			videoCompatible = true
@@ -44,6 +44,10 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate f
 	// I'm not dealing with times and passthrough, fuck that
 	if totalTime != float64(0) || startingTime != float64(0) {
 		audioCompatible, videoCompatible = false, false
+	}
+
+	if settings.MixTracks || settings.Advanced.NormalizeAudio {
+		audioCompatible = false
 	}
 
 	return audioCompatible, videoCompatible, audioBitrateIn
