@@ -49,10 +49,10 @@ func CheckForUpdates() {
 	}
 
 	if data.Tag != build.VERSION {
-		log.Println("You're using an older version of discordcompressor.")
+		log.Println("You're using an older version of DiscordCompressor.")
 		log.Println("You can download a newer version here:", data.URL)
 		time.Sleep(time.Second * 2)
 	} else {
-		log.Println("Discordcompressor is up to date!")
+		log.Println("DiscordCompressor is up to date!")
 	}
 }

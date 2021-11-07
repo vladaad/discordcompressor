@@ -45,7 +45,7 @@ func init() {
 	}
 	log.SetOutput(io.MultiWriter(os.Stdout, file))
 	// Version print
-	log.Println("Starting discordcompressor version " + build.VERSION)
+	log.Println("Starting DiscordCompressor version " + build.VERSION)
 
 	// Parsing flags
 	settingsFile := flag.String("settings", "", "Selects the settings file to be used")
@@ -70,7 +70,6 @@ func init() {
 	settings.Focus = *focus
 	settings.MixTracks = *mixTracks
 	settings.DryRun = *dryRun
-	settings.TargetSize = *targetSize
 
 	// Reenc
 	reEncA, reEncV = false, false
@@ -102,6 +101,7 @@ func init() {
 	if *targetSize == float64(-1) {
 		*targetSize = settings.Encoding.SizeTargetMB
 	}
+	settings.TargetSize = *targetSize
 	targetSizeKbit = *targetSize * 8192
 
 	// enable batch mode - stdout
