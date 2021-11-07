@@ -70,6 +70,7 @@ func init() {
 	settings.Focus = *focus
 	settings.MixTracks = *mixTracks
 	settings.DryRun = *dryRun
+	settings.TargetSize = *targetSize
 
 	// Reenc
 	reEncA, reEncV = false, false
@@ -228,12 +229,12 @@ func compress(inVideo string) bool {
 	// Encode
 	if videoEncoder.TwoPass && !outTarget.VideoPassthrough {
 		log.Println(prefix + "Encoding, pass 1/2")
-		video.Encode(inVideo, audioFile, UUID, 1, false, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
+		video.Encode(inVideo, audioFile, UUID, 1, false, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
 		log.Println(prefix + "Encoding, pass 2/2")
-		video.Encode(inVideo, audioFile, UUID, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
+		video.Encode(inVideo, audioFile, UUID, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
 	} else {
 		log.Println(prefix + "Encoding, pass 1/1")
-		video.Encode(inVideo, audioFile, UUID,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, startingTime, totalTime)
+		video.Encode(inVideo, audioFile, UUID,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
 	}
 
 	os.Remove(UUID + "-0.log")

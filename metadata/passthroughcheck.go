@@ -46,6 +46,10 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate f
 		audioCompatible, videoCompatible = false, false
 	}
 
+	if settings.MixTracks || settings.Advanced.NormalizeAudio {
+		audioCompatible = false
+	}
+
 	return audioCompatible, videoCompatible, audioBitrateIn
 }
 

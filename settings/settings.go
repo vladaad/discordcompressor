@@ -16,3 +16,4 @@ var Original bool
 var DryRun bool
 var ShowStdOut bool
 var BatchMode bool
+var TargetSize float64

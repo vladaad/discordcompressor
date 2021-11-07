@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pixfmt string) string {
+func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pixfmt string) (filter string, vertRes int, FPS float64) {
 	var filters []string
 	// FPS
 	FPS = videoStats.FPS
@@ -29,8 +29,10 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 		}
 	}
 
+	vertRes = videoStats.Height
 	// Resolution
 	if limit.VResMax < videoStats.Height && !settings.Original {
+		vertRes = limit.VResMax
 		if pass == 1 {
 			filters = append(filters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=bilinear")
 		} else {
@@ -43,5 +45,5 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 		filters = append(filters, "format=" + pixfmt)
 	}
 
-	return strings.Join(filters, ",")
+	return strings.Join(filters, ","), vertRes, FPS
 }
