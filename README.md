@@ -1,4 +1,4 @@
-<!-- DO NOT REMOVE - contributor_list:data:start:["vladaad", "notandrewdev"]:end -->
+<!-- DO NOT REMOVE - contributor_list:data:start:["vladaad", "anddddrew"]:end -->
 # discordcompressor
 A small program in Go that efficiently compresses videos using ffmpeg.
 
@@ -33,7 +33,7 @@ Afterwards run `go build` or `build.bat`
 
 - **[@vladaad](https://github.com/vladaad)**
 
-- **[@notandrewdev](https://github.com/notandrewdev)**
+- **[@anddddrew](https://github.com/anddddrew)**
 
 <!-- DO NOT REMOVE - contributor_list:end -->
 <!-- prettier-ignore-end -->
