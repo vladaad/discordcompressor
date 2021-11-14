@@ -9,7 +9,6 @@ type fileformat struct {
 	Advanced  *advanced
 }
 
-var MixTracks bool
 var Debug bool
 var Focus string
 var Original bool

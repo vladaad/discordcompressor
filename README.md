@@ -11,6 +11,7 @@ A small program in Go that efficiently compresses videos using ffmpeg.
 `discordcompressor <arguments> <input video(s)>`
  * `-focus string` - Sets the focus - for example, "framerate" or "resolution" (configured in settings.json)
  * `-mixaudio` - Mixes all audio tracks into one
+ * `-normalize` - Normalizes audio volume
  * `-noscale` - Disables FPS limiting and scaling (not recommended)
  * `-reenc string` - Force re-encodes audio or video ("a", "v", "av")
  * `-settings string` - Selects the settings file - for example, settings-test.json.

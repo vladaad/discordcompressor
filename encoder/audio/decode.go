@@ -32,7 +32,7 @@ func decodeAudio (inFilename string, startingTime float64, totalTime float64, no
 	options = append(options, "-c:a", "pcm_s32le")
 	// Filters
 	mixTracks := false
-	if settings.MixTracks && videoStats.AudioTracks > 1 {
+	if settings.Advanced.MixAudioTracks && videoStats.AudioTracks > 1 {
 		mixTracks = true
 	}
 	filters, mapping := filters(mixTracks, normalize, videoStats, lnParams)

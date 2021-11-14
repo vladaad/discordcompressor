@@ -4,6 +4,7 @@ var Advanced = initAdvanced()
 
 func initAdvanced () *advanced{
 	return &advanced{
+		MixAudioTracks: false,
 		NormalizeAudio: false,
 		DeduplicateFrames: true,
 		CompatibleFormats: []*Format{{
@@ -40,6 +41,7 @@ func initAdvanced () *advanced{
 }
 
 type advanced struct {
+	MixAudioTracks    bool
 	NormalizeAudio    bool
 	DeduplicateFrames bool
 	CompatibleFormats []*Format

@@ -68,7 +68,6 @@ func init() {
 	settings.Debug = *debug
 	settings.Original = *original
 	settings.Focus = *focus
-	settings.MixTracks = *mixTracks
 	settings.DryRun = *dryRun
 
 	// Reenc
@@ -97,9 +96,12 @@ func init() {
 		log.Println("No input video specified, closing...")
 		os.Exit(0)
 	}
-	// targetSizeMB defaults loading
+	// load defaults of some settings
 	if *targetSize == float64(-1) {
 		*targetSize = settings.Encoding.SizeTargetMB
+	}
+	if !*mixTracks {
+		settings.Advanced.MixAudioTracks = *mixTracks
 	}
 	settings.TargetSize = *targetSize
 	targetSizeKbit = *targetSize * 8192
