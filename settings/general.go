@@ -8,6 +8,7 @@ func initGeneral() *general {
 		FFprobeExecutable:   "ffprobe",
 		QaacExecutable:      "qaac64",
 		BatchModeThreads:    1,
+		OutputSuffix:        "-%smb",
 	}
 }
 
@@ -16,4 +17,5 @@ type general struct {
 	FFprobeExecutable   string
 	QaacExecutable      string
 	BatchModeThreads    int
+	OutputSuffix        string
 }

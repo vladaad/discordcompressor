@@ -246,15 +246,18 @@ func compress(inVideo string) bool {
 		}
 	}
 
+	suffix := strings.ReplaceAll(settings.General.OutputSuffix, "%s", strconv.FormatFloat(settings.TargetSize, 'f', -1, 64))
+	outFilename := strings.TrimSuffix(inVideo, path.Ext(inVideo)) + suffix + "." + videoEncoder.Container
+
 	// Encode
 	if videoEncoder.TwoPass && !outTarget.VideoPassthrough {
 		log.Println(prefix + "Encoding, pass 1/2")
-		video.Encode(inVideo, audioFile, UUID, 1, false, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
+		video.Encode(inVideo, "", audioFile, UUID, 1, false, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
 		log.Println(prefix + "Encoding, pass 2/2")
-		video.Encode(inVideo, audioFile, UUID, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
+		video.Encode(inVideo, outFilename, audioFile, UUID, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
 	} else {
 		log.Println(prefix + "Encoding, pass 1/1")
-		video.Encode(inVideo, audioFile, UUID,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
+		video.Encode(inVideo, outFilename, audioFile, UUID,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
 	}
 
 	os.Remove(UUID + "-0.log")

@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"strconv"
 	"strings"
 )
@@ -19,10 +18,9 @@ type OutTarget struct {
 	AudioBitrate     float64
 }
 
-func Encode(filename string, audioFilename string, logFilename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget, aOptions *settings.AudioEncoder, startingTime float64, totalTime float64) bool {
+func Encode(filename string, outputFilename string, audioFilename string, logFilename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget, aOptions *settings.AudioEncoder, startingTime float64, totalTime float64) bool {
 	var options []string
 	// Vars
-	outputFilename := strings.TrimSuffix(filename, path.Ext(filename)) + " (compressed)." + eOptions.Container
 	vEncoderOptions := strings.Split(eOptions.Options, " ")
 	times := metadata.AppendTimes(startingTime, totalTime)
 	// Command
