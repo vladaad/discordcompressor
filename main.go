@@ -10,6 +10,7 @@ import (
 	"github.com/vladaad/discordcompressor/utils"
 	"io"
 	"log"
+	"math"
 	"os"
 	"path"
 	"strconv"
@@ -194,14 +195,21 @@ func compress(inVideo string) bool {
 	}
 
 	// Total bitrate calc
-	totalBitrate, err := metadata.CalcTotalBitrate(targetSizeKbit, videoStats.Duration)
+	totalBitrateUncomp, err := metadata.CalcTotalBitrate(targetSizeKbit, videoStats.Duration)
 	if err {
 		return false
 	}
 
 	// Choosing target
-	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(totalBitrate)
+	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(totalBitrateUncomp)
 	outTarget := new(video.OutTarget)
+
+	// Overshoot compensation
+	overhead := metadata.CalcOverhead(math.Min(float64(limits.FPSMax), videoStats.FPS), videoStats.Duration)
+	if target.Encoder == "libx264" {
+		overhead += metadata.CalcH264Overhead(videoStats.Duration)
+	}
+	totalBitrate := totalBitrateUncomp - overhead
 
 	// AB calc & passthrough
 	hasAudio := true
@@ -229,7 +237,9 @@ func compress(inVideo string) bool {
 
 	// Debug
 	if settings.Debug {
-		log.Println("Calculated target bitrate: " + strconv.FormatFloat(totalBitrate, 'f', 1, 64) + "k")
+		log.Println("Calculated target bitrate: " + strconv.FormatFloat(totalBitrateUncomp, 'f', 1, 64) + "k")
+		log.Println("Adjusted target bitrate: " + strconv.FormatFloat(totalBitrate, 'f', 1, 64) + "k")
+		log.Println("Overhead: " + strconv.FormatFloat(overhead, 'f', 1, 64) + "k")
 		if videoStats.AudioTracks != 0 {
 			log.Println("Calculated video bitrate: " + strconv.FormatFloat(outTarget.VideoBitrate, 'f', 1, 64) + "k")
 			log.Println("Calculated audio bitrate: " + strconv.FormatFloat(outTarget.AudioBitrate, 'f', 1, 64) + "k")
