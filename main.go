@@ -57,6 +57,7 @@ func init() {
 	focus := flag.String("focus", "", "Sets the focus")
 	original := flag.Bool("noscale", false, "Disables FPS limiting and scaling")
 	mixTracks := flag.Bool("mixaudio", false, "Mixes all audio tracks into one")
+	normalize := flag.Bool("normalize", false, "Normalizes audio volume")
 	dryRun := flag.Bool("dryrun", false, "Just prints commands instead of running")
 	reEncode := flag.String("reenc", "", "Re-encodes even when not needed. \"a\", \"v\" or \"av\"")
 	flag.Parse()
@@ -100,8 +101,11 @@ func init() {
 	if *targetSize == float64(-1) {
 		*targetSize = settings.Encoding.SizeTargetMB
 	}
-	if !*mixTracks {
+	if *mixTracks {
 		settings.Advanced.MixAudioTracks = *mixTracks
+	}
+	if *normalize {
+		settings.Advanced.NormalizeAudio = *normalize
 	}
 	settings.TargetSize = *targetSize
 	targetSizeKbit = *targetSize * 8192
