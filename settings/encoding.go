@@ -7,7 +7,7 @@ func initEncoding() *encoding {
 		HalveDownFPS:        false,
 		SizeTargetMB:        8,
 		BitrateTargetMult:   1,
-		BitrateLimitMax:     12500,
+		BitrateLimitMax:     10000,
 		BitrateLimitMin:     500,
 		BitrateTargets: []*Target{{
 				Limits: []*Limits{
@@ -18,7 +18,7 @@ func initEncoding() *encoding {
 					},
 					{
 						Focus:   "resolution",
-						VResMax: 2160,
+						VResMax: 1080,
 						FPSMax:  30,
 					},
 				},
@@ -35,7 +35,7 @@ func initEncoding() *encoding {
 					},
 					{
 						Focus:   "resolution",
-						VResMax: 1440,
+						VResMax: 1080,
 						FPSMax:  30,
 					},
 				},
@@ -52,7 +52,7 @@ func initEncoding() *encoding {
 					},
 					{
 						Focus:   "resolution",
-						VResMax: 1440,
+						VResMax: 1080,
 						FPSMax:  30,
 					},
 				},
@@ -170,7 +170,7 @@ func initEncoding() *encoding {
 				Encoder:      "libx264",
 				CodecName:    "h264",
 				Pixfmt:       "yuv420p",
-				Options:      "",
+				Options:      "-aq-mode 2",
 				Keyint:       10,
 				PresetCmd:    "-preset",
 				TwoPass:      true,
@@ -179,17 +179,7 @@ func initEncoding() *encoding {
 			},
 		},
 		AudioEncoders: []*AudioEncoder{
-			{
-				Name:         "aac",
-				Type:         "ffmpeg",
-				Encoder:      "aac",
-				CodecName:    "aac",
-				Options:      "",
-				UsesBitrate:  true,
-				MaxBitrate:   192,
-				MinBitrate:   112,
-				BitratePerc:  10,
-			},
+			nil,
 		},
 	}
 	}

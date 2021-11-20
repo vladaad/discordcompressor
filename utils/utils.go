@@ -75,3 +75,14 @@ func SettingsDir() string {
 
 	return dir
 }
+
+func CheckIfPresent(filename string) bool {
+	_, err := exec.Command(filename).Output()
+	return !strings.Contains(err.Error(), "executable file not found")
+}
+
+func CommandOutput(filename string, args string) string {
+	split := strings.Split(args, " ")
+	out, _ := exec.Command(filename, split...).Output()
+	return string(out)
+}
