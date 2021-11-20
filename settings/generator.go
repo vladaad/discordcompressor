@@ -3,6 +3,7 @@ package settings
 import (
 	"github.com/vladaad/discordcompressor/utils"
 	"log"
+	"math"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 func populateSettings() {
 	Encoding.AudioEncoders = []*AudioEncoder{generateAudioEncoder()}
+	selectPresets()
 }
 
 func generateAudioEncoder() *AudioEncoder {
@@ -45,6 +47,49 @@ func generateAudioEncoder() *AudioEncoder {
 		}
 	}
 	return encoder
+}
+
+func selectPresets() {
+	presets := []string{"veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"}
+	offsets := []int{2, 3, 4, 4, 5, 6, 6} // look into encoding.go - offset from the "base" fast preset
+	offset := 0
+	slowest := 6
+	fastest := 0
+
+	score := benchmarkx264()
+
+	// Select offsets depending on score
+	// yes, this is a mess
+	if score > 120 { // score 120+ - medium is fastest, medium -> slow,...
+		offset = 1
+		fastest = 4
+	} else if score > 70 { // score 70+ - fast is fastest, medium -> slow,...
+		offset = 1
+	} else if score > 45 { // score 45+ - default
+		offset = 0
+	} else if score > 30 { // score 30+ - slower is slowest, medium -> fast,...
+		offset = -1
+		slowest = 5
+	} else if score > 20 { // score 20+ - faster is fastest, slow is slowest, medium -> faster,...
+		offset = -2
+		fastest = 1
+	} else if score > 10 { // score 10+ - medium -> veryfast,...
+		offset = -3
+	} else { // potato - medium is slowest, medium -> veryfast,...
+		offset = -3
+		slowest = 3
+	}
+
+	// Apply presets
+	for i := range offsets {
+		presetN := offsets[i] + offset
+
+		// holy mother of spaghetti code
+		presetN = int(math.Min(float64(presetN), float64(slowest))) // clamp to slowest
+		presetN = int(math.Max(float64(presetN), float64(fastest))) // clamp to fastest
+
+ 		Encoding.BitrateTargets[i].Preset = presets[presetN]
+	}
 }
 
 func benchmarkx264() float64 {
