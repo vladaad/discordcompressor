@@ -76,7 +76,7 @@ func initEncoding() *encoding {
 				BitrateMin:   2500,
 				Encoder:      "x264",
 				AudioEncoder: "aac",
-				Preset:       "slower",
+				Preset:       "slow",
 			}, {
 				Limits: []*Limits{
 					{
@@ -93,7 +93,7 @@ func initEncoding() *encoding {
 				BitrateMin:   1500,
 				Encoder:      "x264",
 				AudioEncoder: "aac",
-				Preset:       "slower",
+				Preset:       "slow",
 			}, {
 				Limits: []*Limits{
 					{
@@ -110,7 +110,7 @@ func initEncoding() *encoding {
 				BitrateMin:   1000,
 				Encoder:      "x264",
 				AudioEncoder: "aac",
-				Preset:       "veryslow",
+				Preset:       "slower",
 			}, {
 				Limits: []*Limits{
 					{
