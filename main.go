@@ -13,6 +13,7 @@ import (
 	"math"
 	"os"
 	"path"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -47,6 +48,8 @@ func init() {
 	log.SetOutput(io.MultiWriter(os.Stdout, file))
 	// Version print
 	log.Println("Starting DiscordCompressor version " + build.VERSION)
+	// Check for FFmpeg and FFprobe
+	checkForFF()
 
 	// Parsing flags
 	settingsFile := flag.String("settings", "", "Selects the settings file to be used")
@@ -269,4 +272,24 @@ func compress(inVideo string) bool {
 
 	runningInstances -= 1
 	return true
+}
+
+func checkForFF() {
+	exit := false
+	check := []string{"ffmpeg", "ffprobe"}
+
+	for i := range check {
+		if !utils.CheckIfPresent(check[i]) {
+			message := check[i] + " not installed or not added to PATH"
+			if runtime.GOOS == "windows" {
+				message = message + ", you can download it here: https://github.com/BtbN/FFmpeg-Builds/releases"
+			}
+			log.Println(message)
+			exit = true
+		}
+	}
+
+	if exit {
+		os.Exit(1)
+	}
 }
