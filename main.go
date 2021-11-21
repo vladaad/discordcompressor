@@ -206,7 +206,8 @@ func compress(inVideo string) bool {
 	}
 
 	// Choosing target
-	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(totalBitrateUncomp)
+	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(totalBitrateUncomp, videoStats)
+	log.Println(limits)
 	outTarget := new(video.OutTarget)
 
 	// Overshoot compensation

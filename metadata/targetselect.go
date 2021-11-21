@@ -4,12 +4,12 @@ import (
 	"github.com/vladaad/discordcompressor/settings"
 )
 
-func SelectEncoder (bitrate float64) (*settings.Encoder, *settings.AudioEncoder, *settings.Target, *settings.Limits) {
+func SelectEncoder (bitrate float64, videoStats *VidStats) (*settings.Encoder, *settings.AudioEncoder, *settings.Target, *settings.Limits) {
 	for i := range settings.Encoding.BitrateTargets {
 		if settings.Encoding.BitrateTargets[i].BitrateMin < bitrate {
 			target := settings.Encoding.BitrateTargets[i]
 			venc, aenc := encSelect(target)
-			limits := limitSelect(target)
+			limits := limitSelect(target, videoStats)
 			return venc, aenc, target, limits
 		}
 	}
@@ -36,11 +36,17 @@ func aencSelect (encoderName string) *settings.AudioEncoder {
 	panic("Could not find audio encoder " + encoderName)
 }
 
-func limitSelect(target *settings.Target) *settings.Limits {
+func limitSelect(target *settings.Target, videoStats *VidStats) *settings.Limits {
 	for i := range target.Limits {
 		if target.Limits[i].Focus == settings.Focus {
 			return target.Limits[i]
 		}
 	}
-	return target.Limits[0]
+	out := target.Limits[0]
+	for i := range target.Limits {
+		if float64(target.Limits[i].FPSMax) >= videoStats.FPS { // If the input video is 30fps, and one of the limits is 30fps but higher res, it'll pick that one instead
+			out = target.Limits[i]
+		}
+	}
+	return out
 }
