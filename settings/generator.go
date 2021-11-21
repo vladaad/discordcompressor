@@ -37,13 +37,15 @@ func generateAudioEncoder() *AudioEncoder {
 			CodecName:    "aac",
 			Options:      "",
 			UsesBitrate:  true,
-			MaxBitrate:   160,
-			MinBitrate:   128,
+			MaxBitrate:   192,
+			MinBitrate:   160,
 			BitratePerc:  10,
 		}
 		// use twoloop if possible
 		if strings.Contains(utils.CommandOutput("ffmpeg", "-h encoder=aac"), "twoloop") {
 			encoder.Options = "-aac_coder twoloop"
+			encoder.MaxBitrate = 160
+			encoder.MinBitrate = 112
 		}
 	}
 	return encoder
