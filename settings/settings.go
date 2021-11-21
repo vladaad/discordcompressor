@@ -9,6 +9,7 @@ type fileformat struct {
 	Advanced  *advanced
 }
 
+var ForceScore float64
 var Debug bool
 var Focus string
 var Original bool

@@ -55,8 +55,13 @@ func selectPresets() {
 	offset := 0
 	slowest := 6
 	fastest := 0
+	score := 0.0
 
-	score := benchmarkx264()
+	if ForceScore == -1 {
+		score = benchmarkx264()
+	} else {
+		score = ForceScore
+	}
 
 	// Select offsets depending on score
 	// yes, this is a mess
@@ -109,7 +114,7 @@ func benchmarkx264() float64 {
 
 	if err != nil {
 		log.Println("Benchmark failed")
-		return 0
+		return 50
 	}
 
 	score := 1.5 * 60 / elapsed.Seconds()

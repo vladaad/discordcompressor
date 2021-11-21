@@ -64,12 +64,14 @@ func init() {
 	normalize := flag.Bool("normalize", false, "Normalizes audio volume")
 	dryRun := flag.Bool("dryrun", false, "Just prints commands instead of running")
 	reEncode := flag.String("reenc", "", "Re-encodes even when not needed. \"a\", \"v\" or \"av\"")
+	forceBenchScore := flag.Float64("forcescore", -1, "Forces a specific benchmark score when generating settings")
 	flag.Parse()
 	// Settings loading
 	input = flag.Args()
 	targetStartingTime = *startTime
 	targetTotalTime = *targetTime
 	lastSeconds = *lastXSeconds
+	settings.ForceScore = *forceBenchScore
 	settings.Debug = *debug
 	settings.Original = *original
 	settings.Focus = *focus
