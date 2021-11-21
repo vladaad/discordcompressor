@@ -29,6 +29,9 @@ func EncodeAudio (inFilename string, UUID string, inBitrate float64, container s
 	case "qaac":
 		outFilename = outFilenameBase + "m4a"
 		encQaac(outFilename, inBitrate, eOptions, dec)
+	case "fdkaac":
+		outFilename = outFilenameBase + "m4a"
+		encFDKaac(outFilename, inBitrate, eOptions, dec)
 	default:
 		log.Println("Encoder type " + eOptions.Type + " not found")
 		os.Exit(0)

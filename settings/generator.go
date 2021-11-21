@@ -29,6 +29,18 @@ func generateAudioEncoder() *AudioEncoder {
 			MinBitrate:   96,
 			BitratePerc:  10,
 		}
+	} else if utils.CheckIfPresent("fdkaac") {
+		encoder = &AudioEncoder{
+			Name:         "aac",
+			Type:         "fdkaac",
+			Encoder:      "",
+			CodecName:    "aac",
+			Options:      "-w 17500",
+			UsesBitrate:  true,
+			MaxBitrate:   128,
+			MinBitrate:   96,
+			BitratePerc:  10,
+		}
 	} else {
 		encoder = &AudioEncoder{
 			Name:         "aac",
