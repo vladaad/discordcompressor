@@ -29,6 +29,18 @@ func generateAudioEncoder() *AudioEncoder {
 			MinBitrate:   96,
 			BitratePerc:  10,
 		}
+	} else if !strings.Contains(utils.CommandOutput("ffmpeg", "-h encoder=libfdk_aac"), "is not recognized") {
+		encoder = &AudioEncoder{
+			Name:         "aac",
+			Type:         "ffmpeg",
+			Encoder:      "libfdk_aac",
+			CodecName:    "aac",
+			Options:      "-cutoff 17500",
+			UsesBitrate:  true,
+			MaxBitrate:   128,
+			MinBitrate:   96,
+			BitratePerc:  10,
+		}
 	} else if utils.CheckIfPresent("fdkaac") {
 		encoder = &AudioEncoder{
 			Name:         "aac",
