@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pixfmt string) (filter string, vertRes int, FPS float64) {
+func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pixfmt string, subFilename string, streamIndex int) (filter string, vertRes int, FPS float64) {
 	var filters []string
 	// FPS
 	FPS = videoStats.FPS
@@ -22,11 +22,17 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 		filters = append(filters, "fps=" + strconv.FormatFloat(FPS, 'f', -1, 64))
 	}
 
+	// Deduplication
 	if settings.Advanced.DeduplicateFrames && !settings.Original {
 		maxframes := FPS - 1
 		if maxframes >= 1 {
 			filters = append(filters, "mpdecimate=max=" + strconv.FormatFloat(maxframes,'f', 0, 64))
 		}
+	}
+
+	// Subtitle burning
+	if subFilename != "" {
+		filters = append(filters, "subtitles=si=" + strconv.Itoa(streamIndex) + ":f=" + subFilename)
 	}
 
 	vertRes = videoStats.Height

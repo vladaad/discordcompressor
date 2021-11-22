@@ -164,19 +164,30 @@ func compress(inVideo string) bool {
 	// Video analysis
 	log.Println(prefix + "Analyzing video...")
 	videoStats := metadata.GetStats(inVideo, false)
+
 	// Subtitle checking
 	if stringToFind != "" {
 		if videoStats.MatchingSubs {
 			targetStartingTime, targetTotalTime = subtitles.FindTime(inVideo, stringToFind, videoStats.SubtitleStream)
 			if targetStartingTime == -1 || targetTotalTime == -1 {
 				log.Println("Segment not found, try searching again! Keep in mind that discordcompressor can only find one specific subtitle for now.")
+				os.Exit(0)
 			}
+			// Time compensation
+			targetStartingTime -= settings.Advanced.SubStartOffset
+			targetTotalTime += settings.Advanced.SubStartOffset + settings.Advanced.SubEndOffset
+			// Clamping values
+			targetTotalTime = math.Min(targetTotalTime, videoStats.Duration)
+			targetStartingTime = math.Max(0, targetStartingTime)
+
 			targetTotalTime -= targetStartingTime
+
 		} else {
 			log.Println("Error: subtitles with your target language not found.")
 			os.Exit(0)
 		}
 	}
+
 	// Checking time
 	totalTime, startingTime = targetTotalTime, targetStartingTime
 	if settings.BatchMode && (totalTime != 0 || startingTime != 0) {
@@ -223,7 +234,6 @@ func compress(inVideo string) bool {
 
 	// Choosing target
 	videoEncoder, audioEncoder, target, limits := metadata.SelectEncoder(totalBitrateUncomp, videoStats)
-	log.Println(limits)
 	outTarget := new(video.OutTarget)
 
 	// Overshoot compensation
@@ -271,17 +281,30 @@ func compress(inVideo string) bool {
 	suffix := strings.ReplaceAll(settings.General.OutputSuffix, "%s", strconv.FormatFloat(settings.TargetSize, 'f', -1, 64))
 	outFilename := strings.TrimSuffix(inVideo, path.Ext(inVideo)) + suffix + "." + videoEncoder.Container
 
+	// Subtitle extraction
+	subFilename := ""
+	burnSubs := settings.Advanced.BurnSubtitles
+	if !burnSubs || !videoStats.MatchingSubs {
+		burnSubs = false
+	}
+	if burnSubs {
+		log.Println("Extracting subtitles...")
+		subFilename = subtitles.ExtractSubs(inVideo, startingTime, totalTime)
+		videoStats.SubtitleStream = metadata.GetStats(subFilename, true).SubtitleStream // hacky but works
+	}
+
 	// Encode
 	if videoEncoder.TwoPass && !outTarget.VideoPassthrough {
 		log.Println(prefix + "Encoding, pass 1/2")
-		video.Encode(inVideo, "", audioFile, UUID, 1, false, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
+		video.Encode(inVideo, "", audioFile, UUID, 1, false, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime, subFilename, videoStats.SubtitleStream)
 		log.Println(prefix + "Encoding, pass 2/2")
-		video.Encode(inVideo, outFilename, audioFile, UUID, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
+		video.Encode(inVideo, outFilename, audioFile, UUID, 2, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime, subFilename, videoStats.SubtitleStream)
 	} else {
 		log.Println(prefix + "Encoding, pass 1/1")
-		video.Encode(inVideo, outFilename, audioFile, UUID,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime)
+		video.Encode(inVideo, outFilename, audioFile, UUID,0, hasAudio, videoStats, videoEncoder, target, limits, outTarget, audioEncoder, startingTime, totalTime, subFilename, videoStats.SubtitleStream)
 	}
 
+	os.Remove(subFilename)
 	os.Remove(UUID + "-0.log")
 	os.Remove(UUID + "-0.log.mbtree")
 

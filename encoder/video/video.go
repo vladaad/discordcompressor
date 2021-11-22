@@ -18,7 +18,7 @@ type OutTarget struct {
 	AudioBitrate     float64
 }
 
-func Encode(filename string, outputFilename string, audioFilename string, logFilename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget, aOptions *settings.AudioEncoder, startingTime float64, totalTime float64) bool {
+func Encode(filename string, outputFilename string, audioFilename string, logFilename string, pass int, audio bool, videoStats *metadata.VidStats, eOptions *settings.Encoder, eTarget *settings.Target, limit *settings.Limits, oTarget *OutTarget, aOptions *settings.AudioEncoder, startingTime float64, totalTime float64, subFilename string, streamIndex int) bool {
 	var options []string
 	// Vars
 	vEncoderOptions := strings.Split(eOptions.Options, " ")
@@ -49,7 +49,7 @@ func Encode(filename string, outputFilename string, audioFilename string, logFil
 	if !oTarget.VideoPassthrough {
 		var filter string
 		// Video filters
-		filter, metaVertRes, FPS = filters(pass, videoStats, limit, eOptions.Pixfmt)
+		filter, metaVertRes, FPS = filters(pass, videoStats, limit, eOptions.Pixfmt, subFilename, streamIndex)
 		if filter != "" {
 			options = append(options, "-vf", filter)
 		}

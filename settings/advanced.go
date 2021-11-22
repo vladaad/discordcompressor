@@ -8,6 +8,9 @@ func initAdvanced () *advanced{
 		NormalizeAudio: false,
 		DeduplicateFrames: true,
 		SubfinderLang:     "eng",
+		BurnSubtitles:     false,
+		SubStartOffset:    0.5,
+		SubEndOffset:      0.5,
 		CompatibleFormats: []*Format{{
 			Container: "mp4",
 			CompatibleVideoCodecs: []*VideoCodec{{
@@ -46,6 +49,9 @@ type advanced struct {
 	NormalizeAudio    bool
 	DeduplicateFrames bool
 	SubfinderLang     string
+	BurnSubtitles     bool
+	SubStartOffset    float64
+	SubEndOffset      float64
 	CompatibleFormats []*Format
 }
 
