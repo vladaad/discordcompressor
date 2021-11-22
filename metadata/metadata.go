@@ -24,6 +24,7 @@ type Stream struct {
 	Samplerate string `json:"sample_rate"`
 	Channels int `json:"channels"`
 	Bitrate string `json:"bit_rate"`
+	Tags Tag `json:"tags"`
 }
 
 type Format struct {
@@ -44,6 +45,12 @@ type VidStats struct {
 	AudioChannels int
 	VideoCodec   string
 	VideoBitrate float64
+	MatchingSubs bool
+	SubtitleStream int
+}
+
+type Tag struct {
+	Language string `json:"language""`
 }
 
 func GetStats(filepath string, audioonly bool) *VidStats {
@@ -95,6 +102,15 @@ func GetStats(filepath string, audioonly bool) *VidStats {
 		stats.AudioBitrate, _ = strconv.ParseFloat(audioStream.Bitrate, 64)
 		stats.SampleRate, _ = strconv.Atoi(audioStream.Samplerate)
 		stats.AudioChannels = audioStream.Channels
+	}
+	// Subtitles
+	for i := range probeOutput.Streams {
+		if probeOutput.Streams[i].StreamType == "subtitle" {
+			if probeOutput.Streams[i].Tags.Language == settings.Advanced.SubfinderLang && !stats.MatchingSubs {
+				stats.MatchingSubs = true
+				stats.SubtitleStream = i
+			}
+		}
 	}
 
 	// Bitrates -> k

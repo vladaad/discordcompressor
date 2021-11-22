@@ -81,8 +81,7 @@ func CheckIfPresent(filename string) bool {
 	return !strings.Contains(err.Error(), "executable file not found")
 }
 
-func CommandOutput(filename string, args string) string {
-	split := strings.Split(args, " ")
-	out, _ := exec.Command(filename, split...).Output()
+func CommandOutput(filename string, args []string) string {
+	out, _ := exec.Command(filename, args...).Output()
 	return string(out)
 }

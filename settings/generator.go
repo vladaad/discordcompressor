@@ -29,7 +29,7 @@ func generateAudioEncoder() *AudioEncoder {
 			MinBitrate:   96,
 			BitratePerc:  10,
 		}
-	} else if !strings.Contains(utils.CommandOutput("ffmpeg", "-h encoder=libfdk_aac"), "is not recognized") {
+	} else if !strings.Contains(utils.CommandOutput("ffmpeg", []string{"-h", "-encoder=libfdk_aac"}), "is not recognized") {
 		encoder = &AudioEncoder{
 			Name:         "aac",
 			Type:         "ffmpeg",
@@ -66,7 +66,7 @@ func generateAudioEncoder() *AudioEncoder {
 			BitratePerc:  10,
 		}
 		// use twoloop if possible
-		if strings.Contains(utils.CommandOutput("ffmpeg", "-h encoder=aac"), "twoloop") {
+		if strings.Contains(utils.CommandOutput("ffmpeg", []string{"-h", "-encoder=aac"}), "twoloop") {
 			encoder.Options = "-aac_coder twoloop"
 			encoder.MaxBitrate = 160
 			encoder.MinBitrate = 112

@@ -7,6 +7,7 @@ import (
 	"github.com/vladaad/discordcompressor/encoder/video"
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
+	"github.com/vladaad/discordcompressor/subtitles"
 	"github.com/vladaad/discordcompressor/utils"
 	"io"
 	"log"
@@ -26,6 +27,7 @@ var targetSizeKbit float64
 var targetStartingTime float64
 var lastSeconds float64
 var targetTotalTime float64
+var stringToFind string
 var input []string
 var wg sync.WaitGroup
 var runningInstances int
@@ -56,6 +58,7 @@ func init() {
 	startTime := flag.Float64("ss", float64(0), "Sets the starting time")
 	targetTime := flag.Float64("t", float64(0), "Sets the time to encode")
 	lastXSeconds := flag.Float64("last", float64(0), "Sets the time from the end to encode")
+	stringToFindA := flag.String("subfind", "", "Finds and cuts out time from subtitle text")
 	targetSize := flag.Float64("size", float64(-1), "Sets the target size in MB")
 	debug := flag.Bool("debug", false, "Prints extra info")
 	focus := flag.String("focus", "", "Sets the focus")
@@ -71,6 +74,7 @@ func init() {
 	targetStartingTime = *startTime
 	targetTotalTime = *targetTime
 	lastSeconds = *lastXSeconds
+	stringToFind = *stringToFindA
 	settings.ForceScore = *forceBenchScore
 	settings.Debug = *debug
 	settings.Original = *original
@@ -160,7 +164,19 @@ func compress(inVideo string) bool {
 	// Video analysis
 	log.Println(prefix + "Analyzing video...")
 	videoStats := metadata.GetStats(inVideo, false)
-
+	// Subtitle checking
+	if stringToFind != "" {
+		if videoStats.MatchingSubs {
+			targetStartingTime, targetTotalTime = subtitles.FindTime(inVideo, stringToFind, videoStats.SubtitleStream)
+			if targetStartingTime == -1 || targetTotalTime == -1 {
+				log.Println("Segment not found, try searching again! Keep in mind that discordcompressor can only find one specific subtitle for now.")
+			}
+			targetTotalTime -= targetStartingTime
+		} else {
+			log.Println("Error: subtitles with your target language not found.")
+			os.Exit(0)
+		}
+	}
 	// Checking time
 	totalTime, startingTime = targetTotalTime, targetStartingTime
 	if settings.BatchMode && (totalTime != 0 || startingTime != 0) {

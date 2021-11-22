@@ -7,6 +7,7 @@ func initAdvanced () *advanced{
 		MixAudioTracks: false,
 		NormalizeAudio: false,
 		DeduplicateFrames: true,
+		SubfinderLang:     "eng",
 		CompatibleFormats: []*Format{{
 			Container: "mp4",
 			CompatibleVideoCodecs: []*VideoCodec{{
@@ -44,6 +45,7 @@ type advanced struct {
 	MixAudioTracks    bool
 	NormalizeAudio    bool
 	DeduplicateFrames bool
+	SubfinderLang     string
 	CompatibleFormats []*Format
 }
 
