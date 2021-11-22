@@ -67,7 +67,7 @@ func parseASS(input string) []*Line {
 				line.endTime = formatTime(splitLine[endPos])
 
 			}
-			cleaned := strings.ReplaceAll(line.text, "\\N", " ")
+			cleaned := strings.ReplaceAll(line.text, "\\N", "")
 			chars := strings.Split(cleaned, "")
 			for i := range chars {
 				// Ignore formatting
