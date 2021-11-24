@@ -23,9 +23,9 @@ func generateAudioEncoder() *AudioEncoder {
 			Type:         "qaac",
 			Encoder:      "",
 			CodecName:    "aac",
-			Options:      "",
-			UsesBitrate:  true,
-			MaxBitrate:   128,
+			Options:      "-V 64",
+			UsesBitrate:  false,
+			MaxBitrate:   144,
 			MinBitrate:   96,
 			BitratePerc:  10,
 		}
@@ -35,9 +35,9 @@ func generateAudioEncoder() *AudioEncoder {
 			Type:         "ffmpeg",
 			Encoder:      "libfdk_aac",
 			CodecName:    "aac",
-			Options:      "-cutoff 17500",
-			UsesBitrate:  true,
-			MaxBitrate:   128,
+			Options:      "-vbr 3",
+			UsesBitrate:  false,
+			MaxBitrate:   144,
 			MinBitrate:   96,
 			BitratePerc:  10,
 		}
@@ -47,9 +47,9 @@ func generateAudioEncoder() *AudioEncoder {
 			Type:         "fdkaac",
 			Encoder:      "",
 			CodecName:    "aac",
-			Options:      "-w 17500",
+			Options:      "-m 3",
 			UsesBitrate:  true,
-			MaxBitrate:   128,
+			MaxBitrate:   144,
 			MinBitrate:   96,
 			BitratePerc:  10,
 		}
@@ -69,7 +69,7 @@ func generateAudioEncoder() *AudioEncoder {
 		if strings.Contains(utils.CommandOutput("ffmpeg", []string{"-h", "-encoder=aac"}), "twoloop") {
 			encoder.Options = "-aac_coder twoloop"
 			encoder.MaxBitrate = 160
-			encoder.MinBitrate = 112
+			encoder.MinBitrate = 128
 		}
 	}
 	return encoder
