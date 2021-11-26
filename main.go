@@ -28,6 +28,7 @@ var targetStartingTime float64
 var lastSeconds float64
 var targetTotalTime float64
 var stringToFind string
+var customOutputFile string
 var input []string
 var wg sync.WaitGroup
 var runningInstances int
@@ -68,6 +69,7 @@ func init() {
 	dryRun := flag.Bool("dryrun", false, "Just prints commands instead of running")
 	reEncode := flag.String("reenc", "", "Re-encodes even when not needed. \"a\", \"v\" or \"av\"")
 	forceBenchScore := flag.Float64("forcescore", -1, "Forces a specific benchmark score when generating settings")
+	customOutput := flag.String("o", "", "Outputs to a specific filename")
 	flag.Parse()
 	// Settings loading
 	input = flag.Args()
@@ -75,6 +77,7 @@ func init() {
 	targetTotalTime = *targetTime
 	lastSeconds = *lastXSeconds
 	stringToFind = *stringToFindA
+	customOutputFile = *customOutput
 	settings.ForceScore = *forceBenchScore
 	settings.Debug = *debug
 	settings.Original = *original
@@ -119,6 +122,12 @@ func init() {
 	}
 	settings.TargetSize = *targetSize
 	targetSizeKbit = *targetSize * 8192
+
+	// batch mode checks
+	if customOutputFile != "" && len(input) > 1 {
+		log.Println("Can't output to the same file multiple times!")
+		os.Exit(0)
+	}
 
 	// enable batch mode - stdout
 	if len(input) > 1 && settings.General.BatchModeThreads > 1 {settings.BatchMode = true}
@@ -280,6 +289,9 @@ func compress(inVideo string) bool {
 
 	suffix := strings.ReplaceAll(settings.General.OutputSuffix, "%s", strconv.FormatFloat(settings.TargetSize, 'f', -1, 64))
 	outFilename := strings.TrimSuffix(inVideo, path.Ext(inVideo)) + suffix + "." + videoEncoder.Container
+
+	// Custom output filename
+	if customOutputFile != "" {outFilename = customOutputFile + "." + videoEncoder.Container}
 
 	// Subtitle extraction
 	subFilename := ""
