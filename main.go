@@ -290,7 +290,11 @@ func compress(inVideo string) bool {
 	if burnSubs {
 		log.Println("Extracting subtitles...")
 		subFilename = subtitles.ExtractSubs(inVideo, startingTime, totalTime)
-		videoStats.SubtitleStream = metadata.GetStats(subFilename, true).SubtitleStream // hacky but works
+		if subFilename != "" {
+			videoStats.SubtitleStream = metadata.GetStats(subFilename, true).SubtitleStream // hacky but works
+		} else {
+			log.Println("Subtitles couldn't be extracted! Not burning")
+		}
 	}
 
 	// Encode

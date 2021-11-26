@@ -38,11 +38,13 @@ func ExtractSubs(filename string, startingTime float64, totalTime float64) strin
 
 		err := cmd.Start()
 		if err != nil {
-			panic(err)
+			return ""
+			os.Remove(outFilename)
 		}
 		err = cmd.Wait()
 		if err != nil {
-			panic(err)
+			return ""
+			os.Remove(outFilename)
 		}
 	}
 
