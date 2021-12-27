@@ -30,9 +30,9 @@ func filters(video *settings.Video, lnParams *LoudnormParams) (filter string, ma
 		filter = append(filter, inputs...)
 		switch video.Input.AudioChannels {
 		case 6:
-			filter = append(filter, "volume=1.6,pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE")
+			filter = append(filter, "pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE")
 		case 8:
-			filter = append(filter, "volume=1.6,pan=stereo|FL= 0.5*FC+0.3*FLC+0.3*FL+0.3*BL+0.3*SL+0.5*LFE|FR=0.5*FC+0.3*FRC+0.3*FR+0.3*BR+0.3*SR+0.5*LFE")
+			filter = append(filter, "pan=stereo|FL= 0.5*FC+0.3*FLC+0.3*FL+0.3*BL+0.3*SL+0.5*LFE|FR=0.5*FC+0.3*FRC+0.3*FR+0.3*BR+0.3*SR+0.5*LFE")
 		default:
 			filter = nil
 		}

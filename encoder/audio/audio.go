@@ -12,6 +12,9 @@ func EncodeAudio (video *settings.Video) (outBitrate float64, outFilename string
 	outFilenameBase := video.UUID + "."
 	// normalize audio
 	lnParams := new(LoudnormParams)
+	if video.Input.AudioChannels > 2 {
+		video.Output.Audio.Normalize = true
+	}
 	if video.Output.Audio.Normalize {
 		dec := decodeAudio(video, lnParams)
 		lnParams = detectVolume(dec)
