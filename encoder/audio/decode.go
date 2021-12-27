@@ -46,7 +46,12 @@ func decodeAudio (video *settings.Video, lnParams *LoudnormParams) io.ReadCloser
 	if !utils.ContainsInt(video.Input.AudioChannels, dontDownmix) || (video.Output.Audio.Mix && video.Input.AudioTracks > 1) {
 		options = append(options, "-ac", "2")
 	}
-	options = append(options, "-ar", "48000")
+
+	if video.Output.Audio.Encoder.CodecName == "aac" {
+		options = append(options, "-ar", "44100")
+	} else {
+		options = append(options, "-ar", "48000")
+	}
 	options = append(options, "-f", "wav", "-")
 
 	if settings.Debug || settings.DryRun {
