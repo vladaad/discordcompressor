@@ -171,6 +171,9 @@ func compress(inVideo string) bool {
 	video.Filename = inVideo
 	video.Size = targetSizeKbit
 
+	video.Output.Audio.Normalize = settings.Advanced.NormalizeAudio
+	video.Output.Audio.Mix = settings.Advanced.MixAudioTracks
+
 	// Video analysis
 	log.Println(prefix + "Analyzing video...")
 	video.Input = metadata.GetStats(inVideo, false)
