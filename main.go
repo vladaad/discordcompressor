@@ -312,6 +312,11 @@ func compress(inVideo string) bool {
 		}
 	}
 
+	// Software HDR warning
+	if video.Input.IsHDR && !settings.Decoding.TonemapHWAccel {
+		log.Println(prefix + "Warning: tonemapping HDR video in software - this is very slow")
+	}
+
 	// Encode
 	if video.Output.Video.Encoder.TwoPass && !video.Output.Video.Passthrough {
 		log.Println(prefix + "Encoding, pass 1/2")

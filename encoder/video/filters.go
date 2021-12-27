@@ -54,6 +54,15 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 		filters = append(filters, "scale=" + scaleExpr + ":flags=" + scaleAlgo)
 	}
 
+	// HDR tonemapping
+	if video.Input.IsHDR {
+		if settings.Decoding.TonemapHWAccel {
+			filters = append(filters, "format=p010,hwupload,tonemap_opencl=tonemap=mobius:format=p010,hwdownload,format=p010")
+		} else {
+			filters = append(filters, "zscale=transfer=linear,tonemap=mobius,zscale=transfer=bt709")
+		}
+	}
+
 	// Pixfmt conversion
 	if video.Input.Pixfmt != video.Output.Video.Encoder.Pixfmt {
 		filters = append(filters, "format=" + video.Output.Video.Encoder.Pixfmt)

@@ -36,6 +36,9 @@ func Encode(video *settings.Video, outFilename string, pass int) bool {
 	options = append(options,
 		"-y", "-hwaccel", settings.Decoding.HardwareAccel,
 	)
+	if video.Input.IsHDR && settings.Decoding.TonemapHWAccel {
+		options = append(options, "-hwaccel", "opencl")
+	}
 	options = append(options, times...)
 	options = append(options, "-i", video.Filename)
 
