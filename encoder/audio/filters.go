@@ -1,34 +1,34 @@
 package audio
 
 import (
-	"github.com/vladaad/discordcompressor/metadata"
+	"github.com/vladaad/discordcompressor/settings"
 	"strconv"
 	"strings"
 )
 
-func filters(mixTracks bool, normalize bool, videoStats *metadata.VidStats, lnParams *LoudnormParams) (filter string, mapping string) {
+func filters(video *settings.Video, lnParams *LoudnormParams) (filter string, mapping string) {
 	var filters []string
 	var inputs []string
-	if mixTracks {
-		for i := 0; i < videoStats.AudioTracks; i++ {
+	if video.Output.Audio.Mix {
+		for i := 0; i < video.Input.AudioTracks; i++ {
 			inputs = append(inputs, "[0:a:" + strconv.Itoa(i) + "]")
 		}
 	} else {
 		inputs = []string{"[0:a:0]"}
 	}
 	mapping = "0:a:0"
-	if mixTracks {
+	if video.Output.Audio.Mix {
 		var filter []string
 		filter = append(filter, inputs...)
-		filter = append(filter, "amix=inputs=", strconv.Itoa(videoStats.AudioTracks))
+		filter = append(filter, "amix=inputs=", strconv.Itoa(video.Input.AudioTracks))
 		filter = append(filter, "[mixed]")
 		filters = append(filters, strings.Join(filter, ""))
 		inputs = []string{"[mixed]"}
 		mapping = inputs[0]
-	} else if videoStats.AudioChannels > 2 { // this is intentional, otherwise downmix is done "normally" via -ac 2
+	} else if video.Input.AudioChannels > 2 { // this is intentional, otherwise downmix is done "normally" via -ac 2
 		var filter []string
 		filter = append(filter, inputs...)
-		switch videoStats.AudioChannels {
+		switch video.Input.AudioChannels {
 		case 6:
 			filter = append(filter, "volume=1.6,pan=stereo|FL=0.5*FC+0.707*FL+0.707*BL+0.5*LFE|FR=0.5*FC+0.707*FR+0.707*BR+0.5*LFE")
 		case 8:
@@ -41,7 +41,7 @@ func filters(mixTracks bool, normalize bool, videoStats *metadata.VidStats, lnPa
 		inputs = []string{"[downmixed]"}
 		mapping = inputs[0]
 	}
-	if normalize {
+	if video.Output.Audio.Normalize {
 		var filter []string
 		filter = append(filter, inputs...)
 		filter = append(filter, "loudnorm=linear=true:i=-14:lra=7:tp=-1")

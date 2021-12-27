@@ -10,15 +10,15 @@ import (
 	"strings"
 )
 
-func encQaac(outFilename string, bitrate float64, eOptions *settings.AudioEncoder, input io.ReadCloser) {
+func encQaac(outFilename string, video *settings.Video, input io.ReadCloser) {
 	var options []string
-	encoderSettings := strings.Split(eOptions.Options, " ")
+	encoderSettings := strings.Split(video.Output.Audio.Encoder.Options, " ")
 
 	// Encoding options
-	if eOptions.UsesBitrate {
-		options = append(options, "-a", strconv.FormatFloat(bitrate, 'f', -1, 64))
+	if video.Output.Audio.Encoder.UsesBitrate {
+		options = append(options, "-a", strconv.FormatFloat(video.Output.Audio.Bitrate, 'f', -1, 64))
 	}
-	if eOptions.Options != "" {
+	if video.Output.Audio.Encoder.Options != "" {
 		options = append(options, encoderSettings...)
 	}
 	// Input & output options

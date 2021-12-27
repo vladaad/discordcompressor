@@ -3,22 +3,21 @@ package subtitles
 import (
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
-	"github.com/vladaad/discordcompressor/utils"
 	"log"
 	"os"
 	"os/exec"
 )
 
-func ExtractSubs(filename string, startingTime float64, totalTime float64) string {
+func ExtractSubs(video *settings.Video) string {
 	var options []string
-	outFilename := utils.GenUUID() + ".mkv"
+	outFilename := video.UUID + ".subs.mkv"
 
 	options = append(options, "-y", "-loglevel", "error")
 
 
-	options = append(options, "-i", filename)
+	options = append(options, "-i", video.Filename)
 	// the times have to be after the filename for subs to work nice
-	options = append(options, metadata.AppendTimes(startingTime, totalTime)...)
+	options = append(options, metadata.AppendTimes(video)...)
 
 	options = append(options, "-c", "copy", "-c:s", "ass", "-map", "0", "-vn", "-an")
 

@@ -1,23 +1,22 @@
-package video
+package vidEnc
 
 import (
-	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
 	"strconv"
 	"strings"
 )
 
-func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pixfmt string, subFilename string, streamIndex int) (filter string, vertRes int, FPS float64) {
+func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS float64) {
 	var filters []string
 	// FPS
-	FPS = videoStats.FPS
-	if float64(limit.FPSMax) < videoStats.FPS && !settings.Original {
+	FPS = video.Input.FPS
+	if float64(video.Output.Video.Limits.FPSMax) < video.Input.FPS && !settings.Original {
 		if settings.Encoding.HalveDownFPS {
-			for FPS > float64(limit.FPSMax) {
+			for FPS > float64(video.Output.Video.Limits.FPSMax) {
 				FPS /= 2
 			}
 		} else {
-			FPS = float64(limit.FPSMax)
+			FPS = float64(video.Output.Video.Limits.FPSMax)
 		}
 		filters = append(filters, "fps=" + strconv.FormatFloat(FPS, 'f', -1, 64))
 	}
@@ -31,24 +30,24 @@ func filters(pass int, videoStats *metadata.VidStats, limit *settings.Limits, pi
 	}
 
 	// Subtitle burning
-	if subFilename != "" {
-		filters = append(filters, "subtitles=si=" + strconv.Itoa(streamIndex) + ":f=" + subFilename)
+	if video.Output.Subs.SubFile != "" {
+		filters = append(filters, "subtitles=si=" + strconv.Itoa(video.Input.SubtitleStream) + ":f=" + video.Output.Subs.SubFile)
 	}
 
-	vertRes = videoStats.Height
+	vertRes = video.Input.Height
 	// Resolution
-	if limit.VResMax < videoStats.Height && !settings.Original {
-		vertRes = limit.VResMax
+	if video.Output.Video.Limits.VResMax < video.Input.Height && !settings.Original {
+		vertRes = video.Output.Video.Limits.VResMax
 		if pass == 1 {
-			filters = append(filters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=bilinear")
+			filters = append(filters, "scale=-2:" + strconv.Itoa(vertRes) + ":flags=bilinear")
 		} else {
-			filters = append(filters, "scale=-2:" + strconv.Itoa(limit.VResMax) + ":flags=lanczos")
+			filters = append(filters, "scale=-2:" + strconv.Itoa(vertRes) + ":flags=spline")
 		}
 	}
 
 	// Pixfmt conversion
-	if videoStats.Pixfmt != pixfmt {
-		filters = append(filters, "format=" + pixfmt)
+	if video.Input.Pixfmt != video.Output.Video.Encoder.Pixfmt {
+		filters = append(filters, "format=" + video.Output.Video.Encoder.Pixfmt)
 	}
 
 	return strings.Join(filters, ","), vertRes, FPS

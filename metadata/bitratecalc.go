@@ -7,13 +7,13 @@ import (
 	"strconv"
 )
 
-func CalcTotalBitrate(size float64, duration float64) (float64, bool) {
-	bitrate := size / duration
+func CalcTotalBitrate(video *settings.Video) (float64, bool) {
+	bitrate := video.Size / video.Time.Time
 
 	bitrate = math.Min(bitrate, settings.Encoding.BitrateLimitMax)
 
 	if bitrate < settings.Encoding.BitrateLimitMin {
-		maxLength := size / settings.Encoding.BitrateLimitMin
+		maxLength := video.Size / settings.Encoding.BitrateLimitMin
 		log.Println("File too long! Maximum length: " + strconv.FormatFloat(maxLength, 'f', 1, 64) + " seconds")
 		return 0, true
 	}
@@ -21,16 +21,16 @@ func CalcTotalBitrate(size float64, duration float64) (float64, bool) {
 	return bitrate, false
 }
 
-func CalcAudioBitrate(targetBitrate float64, encoder *settings.AudioEncoder, audioChannels int) float64 {
+func CalcAudioBitrate(video *settings.Video) float64 {
 	// Audio calc
     mult := 1.0
-    if audioChannels == 1 {
+    if video.Input.AudioChannels == 1 {
     	mult = 0.5
 	}
-	AudioBitrate := targetBitrate * mult * float64(encoder.BitratePerc) / float64(100)
+	AudioBitrate := video.Output.TotalBitrate * mult * float64(video.Output.Audio.Encoder.BitratePerc) / float64(100)
 
-	AudioBitrate = math.Min(AudioBitrate, encoder.MaxBitrate * mult)
-	AudioBitrate = math.Max(AudioBitrate, encoder.MinBitrate * mult)
+	AudioBitrate = math.Min(AudioBitrate, video.Output.Audio.Encoder.MaxBitrate * mult)
+	AudioBitrate = math.Max(AudioBitrate, video.Output.Audio.Encoder.MinBitrate * mult)
 
 	return AudioBitrate
 }

@@ -1,74 +1,73 @@
-package video
+package vidEnc
 
 import (
 	"github.com/vladaad/discordcompressor/build"
-	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
 	"strconv"
 )
 
-func addMetadata(oTarget *OutTarget, videoStats *metadata.VidStats, eOptions *settings.Encoder, vertRes int, FPS float64, eTarget *settings.Target, aOptions *settings.AudioEncoder) []string {
+func addMetadata(video *settings.Video, vertRes int, FPS float64) []string {
 	var options []string
 
-	options = append(options, "-metadata:s:v:0", "title=" + strconv.FormatFloat(settings.TargetSize, 'f', 0, 64 ) + "mb video compressed using DiscordCompressor " + build.VERSION + " | " + generateVideoDescription(oTarget, videoStats, eOptions, vertRes, FPS, eTarget))
-	if oTarget.AudioBitrate != 0 {
-		options = append(options, "-metadata:s:a:0", "title=" + generateAudioDescription(oTarget, videoStats, aOptions))
+	options = append(options, "-metadata:s:v:0", "title=" + strconv.FormatFloat(settings.TargetSize, 'f', 0, 64 ) + "mb video compressed using DiscordCompressor " + build.VERSION + " | " + generateVideoDescription(video, vertRes, FPS))
+	if video.Output.Audio.Bitrate > 0 {
+		options = append(options, "-metadata:s:a:0", "title=" + generateAudioDescription(video))
 	}
 
 	return options
 }
 
-func generateVideoDescription(oTarget *OutTarget, videoStats *metadata.VidStats, eOptions *settings.Encoder, vertRes int, FPS float64, eTarget *settings.Target) (description string) {
+func generateVideoDescription(video *settings.Video, vertRes int, FPS float64) (description string) {
 	const FPSPrecision = 0
 
 	// Video
-	if oTarget.VideoPassthrough {
+	if video.Output.Video.Passthrough {
 		description = description + "Passed through - "
-		description = description + strconv.Itoa(videoStats.Height) + "p"
-		description = description + strconv.FormatFloat(videoStats.FPS, 'f', FPSPrecision, 64) + " "
-		description = description + strconv.FormatFloat(videoStats.VideoBitrate, 'f', 0, 64) + "kbit "
-		description = description + videoStats.VideoCodec
+		description = description + strconv.Itoa(video.Input.Height) + "p"
+		description = description + strconv.FormatFloat(video.Input.FPS, 'f', FPSPrecision, 64) + " "
+		description = description + strconv.FormatFloat(video.Input.VideoBitrate, 'f', 0, 64) + "kbit "
+		description = description + video.Input.VideoCodec
 	} else {
 		description = description + strconv.Itoa(vertRes) + "p"
 		description = description + strconv.FormatFloat(FPS, 'f', FPSPrecision, 64) + " "
-		description = description + strconv.FormatFloat(oTarget.VideoBitrate, 'f', 0, 64) + "kbit "
-		if eOptions.TwoPass {
+		description = description + strconv.FormatFloat(video.Output.Video.Bitrate, 'f', 0, 64) + "kbit "
+		if video.Output.Video.Encoder.TwoPass {
 			description = description + "2-pass "
 		} else {
 			description = description + "1-pass "
 		}
-		description = description + eOptions.Encoder + " | "
-		description = description + "-preset " + eTarget.Preset + " "
-		description = description + eOptions.Options
+		description = description + video.Output.Video.Encoder.Encoder + " | "
+		description = description + "-preset " + video.Output.Video.Preset + " "
+		description = description + video.Output.Video.Encoder.Options
 	}
 
 	return description
 }
 
-func generateAudioDescription(oTarget *OutTarget, videoStats *metadata.VidStats, aOptions *settings.AudioEncoder) (description string) {
+func generateAudioDescription(video *settings.Video) (description string) {
 	// Audio
-	if oTarget.AudioPassthrough {
+	if video.Output.Audio.Passthrough {
 		description = description + "Passed through - "
-		description = description + strconv.FormatFloat(videoStats.AudioBitrate, 'f', 0, 64) + "kbit "
-		description = description + videoStats.AudioCodec
+		description = description + strconv.FormatFloat(video.Input.AudioBitrate, 'f', 0, 64) + "kbit "
+		description = description + video.Input.AudioCodec
 	} else {
-		description = description + strconv.FormatFloat(oTarget.AudioBitrate, 'f', 0, 64) + "kbit "
+		description = description + strconv.FormatFloat(video.Output.Audio.Bitrate, 'f', 0, 64) + "kbit "
 		var encoderName string
-		switch aOptions.Type {
+		switch video.Output.Audio.Encoder.Type {
 		case "ffmpeg":
-			encoderName = aOptions.Encoder
+			encoderName = video.Output.Audio.Encoder.Encoder
 		default:
-			encoderName = aOptions.Type
+			encoderName = video.Output.Audio.Encoder.Type
 		}
-		if aOptions.Type == "ffmpeg" && encoderName == "aac" {
+		if video.Output.Audio.Encoder.Type == "ffmpeg" && encoderName == "aac" {
 			encoderName = "FFmpeg AAC"
 		}
 		description = description + encoderName
-		if settings.Advanced.NormalizeAudio {
+		if video.Output.Audio.Normalize {
 			description = description + " (normalized)"
 		}
 		description = description + " | "
-		description = description + aOptions.Options
+		description = description + video.Output.Audio.Encoder.Options
 	}
 
 

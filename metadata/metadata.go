@@ -32,29 +32,12 @@ type Format struct {
 	Bitrate string `json:"bit_rate"`
 }
 
-type VidStats struct {
-	Height	     int
-	FPS		     float64
-	Bitrate      float64
-	Duration     float64
-	Pixfmt       string
-	AudioTracks  int
-	AudioCodec   string
-	AudioBitrate float64
-	SampleRate   int
-	AudioChannels int
-	VideoCodec   string
-	VideoBitrate float64
-	MatchingSubs bool
-	SubtitleStream int
-}
-
 type Tag struct {
 	Language string `json:"language""`
 }
 
-func GetStats(filepath string, audioonly bool) *VidStats {
-	stats := new(VidStats)
+func GetStats(filepath string, audioonly bool) *settings.VidStats {
+	stats := new(settings.VidStats)
 	if _, err := os.Stat(filepath); err != nil {
 		panic(filepath + " doesn't exist")
 	}
