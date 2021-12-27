@@ -16,6 +16,7 @@ type VidStats struct {
 	Bitrate      float64
 	Duration     float64
 	Pixfmt       string
+	IsHDR        bool
 	AudioTracks  int
 	AudioCodec   string
 	AudioBitrate float64

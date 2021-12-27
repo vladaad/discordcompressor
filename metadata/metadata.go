@@ -11,6 +11,7 @@ import (
 )
 
 type StreamList struct {
+	Frames []Frame `json:"frames"`
 	Streams []Stream `json:"streams"`
 	Format Format `json:"format"`
 }
@@ -33,6 +34,14 @@ type Format struct {
 	Bitrate string `json:"bit_rate"`
 }
 
+type Frame struct {
+	SideDataList []SideData `json:"side_data_list"`
+}
+
+type SideData struct {
+	Type string `json:"side_data_type"`
+}
+
 type Tag struct {
 	Language string `json:"language""`
 }
@@ -48,6 +57,7 @@ func GetStats(filepath string, audioonly bool) *settings.VidStats {
 		"-loglevel", "quiet",
 		"-of", "json",
 		"-show_entries", "stream:format",
+		"-show_frames", "-read_intervals", "%+#1",
 		filepath,
 		).Output()
 
@@ -75,6 +85,14 @@ func GetStats(filepath string, audioonly bool) *settings.VidStats {
 		n1, _ := strconv.ParseFloat(fpsSplit[0], 64)
 		n2, _ := strconv.ParseFloat(fpsSplit[1], 64)
 		stats.FPS = n1 / n2
+		// HDR detect
+		if len(probeOutput.Frames[0].SideDataList) != 0 {
+			for i := range probeOutput.Frames[0].SideDataList {
+				if probeOutput.Frames[0].SideDataList[i].Type == "Mastering display metadata" {
+					stats.IsHDR = true
+				}
+			}
+		}
 	}
 	// Other
 	stats.Duration, _ = strconv.ParseFloat(probeOutput.Format.Duration, 64)
