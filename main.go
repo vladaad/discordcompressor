@@ -166,9 +166,7 @@ func compress(inVideo string) bool {
 	if settings.BatchMode{prefix = "[" + cleanName + "] "}
 	log.Println("Compressing " + cleanName)
 
-	// Generate UUID
-	UUID := utils.GenUUID()
-
+	// Initialize video
 	video := initVideo()
 	video.Filename = inVideo
 	video.Size = targetSizeKbit
@@ -323,8 +321,8 @@ func compress(inVideo string) bool {
 	}
 
 	os.Remove(video.Output.Subs.SubFile)
-	os.Remove(UUID + "-0.log")
-	os.Remove(UUID + "-0.log.mbtree")
+	os.Remove(video.UUID + "-0.log")
+	os.Remove(video.UUID + "-0.log.mbtree")
 
 	if hasAudio{os.Remove(video.Output.Audio.Filename)}
 
@@ -365,6 +363,7 @@ func initVideo() *settings.Video {
 	output.Video, output.Audio, output.Subs = videoo, audioo, subs
 	video.Time = time
 	video.Output = output
+	video.UUID = utils.GenUUID()
 
 	return video
 }
