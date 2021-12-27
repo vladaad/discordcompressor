@@ -18,6 +18,7 @@ type StreamList struct {
 type Stream struct {
 	CodecName string `json:"codec_name"`
 	StreamType string `json:"codec_type"`
+	Width int `json:"width"`
 	Height int `json:"height"`
 	Pixfmt string `json:"pix_fmt"`
 	Framerate string `json:"r_frame_rate"`
@@ -67,6 +68,7 @@ func GetStats(filepath string, audioonly bool) *settings.VidStats {
 		stats.VideoBitrate, _ = strconv.ParseFloat(videoStream.Bitrate, 64)
 		stats.VideoCodec = videoStream.CodecName
 		stats.Pixfmt = videoStream.Pixfmt
+		stats.Width = videoStream.Width
 		stats.Height = videoStream.Height
 		// FPS
 		fpsSplit := strings.Split(videoStream.Framerate, "/")

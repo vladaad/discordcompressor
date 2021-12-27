@@ -34,15 +34,24 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 		filters = append(filters, "subtitles=si=" + strconv.Itoa(video.Input.SubtitleStream) + ":f=" + video.Output.Subs.SubFile)
 	}
 
-	vertRes = video.Input.Height
 	// Resolution
-	if video.Output.Video.Limits.VResMax < video.Input.Height && !settings.Original {
+	vertRes = video.Input.Height
+	if video.Input.Height > video.Output.Video.Limits.VResMax || float64(video.Input.Width) > float64(video.Output.Video.Limits.VResMax) / 0.5625 {
 		vertRes = video.Output.Video.Limits.VResMax
-		if pass == 1 {
-			filters = append(filters, "scale=-2:" + strconv.Itoa(vertRes) + ":flags=bilinear")
+		scaleExpr := ""
+		scaleAlgo := ""
+		if float64(video.Input.Height) / float64(video.Input.Width) < 0.5625 { // 0.5625 = 16:9
+			horizRes := int(float64(video.Output.Video.Limits.VResMax) / 1.125) * 2 // very hacky way of ensuring a multiple of 2
+			scaleExpr = strconv.Itoa(horizRes) + ":-2"
 		} else {
-			filters = append(filters, "scale=-2:" + strconv.Itoa(vertRes) + ":flags=spline")
+			scaleExpr = "-2:" + strconv.Itoa(video.Output.Video.Limits.VResMax)
 		}
+		if pass == 1 {
+			scaleAlgo = "bilinear"
+		} else {
+			scaleAlgo = "spline"
+		}
+		filters = append(filters, "scale=" + scaleExpr + ":flags=" + scaleAlgo)
 	}
 
 	// Pixfmt conversion

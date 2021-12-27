@@ -41,7 +41,7 @@ func filters(video *settings.Video, lnParams *LoudnormParams) (filter string, ma
 		inputs = []string{"[downmixed]"}
 		mapping = inputs[0]
 	}
-	if video.Output.Audio.Normalize {
+	if video.Output.Audio.Normalize && lnParams.IL != "" {
 		var filter []string
 		filter = append(filter, inputs...)
 		filter = append(filter, "loudnorm=linear=true:i=-14:lra=7:tp=-1")

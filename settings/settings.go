@@ -10,6 +10,7 @@ type fileformat struct {
 }
 
 type VidStats struct {
+	Width        int
 	Height	     int
 	FPS		     float64
 	Bitrate      float64
