@@ -4,8 +4,13 @@ var Advanced = initAdvanced()
 
 func initAdvanced () *advanced{
 	return &advanced{
+		MixAudioTracks: false,
 		NormalizeAudio: false,
 		DeduplicateFrames: true,
+		SubfinderLang:     "eng",
+		BurnSubtitles:     false,
+		SubStartOffset:    0.5,
+		SubEndOffset:      0.5,
 		CompatibleFormats: []*Format{{
 			Container: "mp4",
 			CompatibleVideoCodecs: []*VideoCodec{{
@@ -40,8 +45,13 @@ func initAdvanced () *advanced{
 }
 
 type advanced struct {
+	MixAudioTracks    bool
 	NormalizeAudio    bool
 	DeduplicateFrames bool
+	SubfinderLang     string
+	BurnSubtitles     bool
+	SubStartOffset    float64
+	SubEndOffset      float64
 	CompatibleFormats []*Format
 }
 

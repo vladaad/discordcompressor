@@ -10,11 +10,11 @@ import (
 	"os/exec"
 )
 
-func decodeAudio (inFilename string, startingTime float64, totalTime float64, normalize bool, videoStats *metadata.VidStats, lnParams *LoudnormParams) io.ReadCloser {
+func decodeAudio (video *settings.Video, lnParams *LoudnormParams) io.ReadCloser {
 	var options []string
 	dontDownmix := []int{1, 2, 6, 8}
 
-	times := metadata.AppendTimes(startingTime, totalTime)
+	times := metadata.AppendTimes(video)
 	if settings.Debug {
 		options = append(options,
 			"-loglevel", "warning", "-stats",
@@ -26,16 +26,15 @@ func decodeAudio (inFilename string, startingTime float64, totalTime float64, no
 	}
 	options = append(options, "-y")
 	options = append(options, times...)
-	options = append(options, "-i", inFilename)
+	options = append(options, "-i", video.Filename)
 
 	// Encoding options
 	options = append(options, "-c:a", "pcm_s32le")
 	// Filters
-	mixTracks := false
-	if settings.MixTracks && videoStats.AudioTracks > 1 {
-		mixTracks = true
+	if video.Output.Audio.Mix && video.Input.AudioTracks < 2 {
+		video.Output.Audio.Mix = false
 	}
-	filters, mapping := filters(mixTracks, normalize, videoStats, lnParams)
+	filters, mapping := filters(video, lnParams)
 
 	if filters != "" {options = append(options, "-filter_complex", filters)}
 	options = append(options, "-map", mapping)
@@ -44,10 +43,15 @@ func decodeAudio (inFilename string, startingTime float64, totalTime float64, no
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
 
-	if !utils.ContainsInt(videoStats.AudioChannels, dontDownmix) || (mixTracks && videoStats.AudioTracks > 1) {
+	if !utils.ContainsInt(video.Input.AudioChannels, dontDownmix) || (video.Output.Audio.Mix && video.Input.AudioTracks > 1) {
 		options = append(options, "-ac", "2")
 	}
-	options = append(options, "-ar", "48000")
+
+	if video.Output.Audio.Encoder.CodecName == "aac" {
+		options = append(options, "-ar", "44100")
+	} else {
+		options = append(options, "-ar", "48000")
+	}
 	options = append(options, "-f", "wav", "-")
 
 	if settings.Debug || settings.DryRun {

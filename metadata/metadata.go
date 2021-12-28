@@ -11,6 +11,7 @@ import (
 )
 
 type StreamList struct {
+	Frames []Frame `json:"frames"`
 	Streams []Stream `json:"streams"`
 	Format Format `json:"format"`
 }
@@ -18,12 +19,14 @@ type StreamList struct {
 type Stream struct {
 	CodecName string `json:"codec_name"`
 	StreamType string `json:"codec_type"`
+	Width int `json:"width"`
 	Height int `json:"height"`
 	Pixfmt string `json:"pix_fmt"`
 	Framerate string `json:"r_frame_rate"`
 	Samplerate string `json:"sample_rate"`
 	Channels int `json:"channels"`
 	Bitrate string `json:"bit_rate"`
+	Tags Tag `json:"tags"`
 }
 
 type Format struct {
@@ -31,23 +34,20 @@ type Format struct {
 	Bitrate string `json:"bit_rate"`
 }
 
-type VidStats struct {
-	Height	     int
-	FPS		     float64
-	Bitrate      float64
-	Duration     float64
-	Pixfmt       string
-	AudioTracks  int
-	AudioCodec   string
-	AudioBitrate float64
-	SampleRate   int
-	AudioChannels int
-	VideoCodec   string
-	VideoBitrate float64
+type Frame struct {
+	SideDataList []SideData `json:"side_data_list"`
 }
 
-func GetStats(filepath string, audioonly bool) *VidStats {
-	stats := new(VidStats)
+type SideData struct {
+	Type string `json:"side_data_type"`
+}
+
+type Tag struct {
+	Language string `json:"language""`
+}
+
+func GetStats(filepath string, audioonly bool) *settings.VidStats {
+	stats := new(settings.VidStats)
 	if _, err := os.Stat(filepath); err != nil {
 		panic(filepath + " doesn't exist")
 	}
@@ -57,6 +57,7 @@ func GetStats(filepath string, audioonly bool) *VidStats {
 		"-loglevel", "quiet",
 		"-of", "json",
 		"-show_entries", "stream:format",
+		"-show_frames", "-read_intervals", "%+#1",
 		filepath,
 		).Output()
 
@@ -77,12 +78,21 @@ func GetStats(filepath string, audioonly bool) *VidStats {
 		stats.VideoBitrate, _ = strconv.ParseFloat(videoStream.Bitrate, 64)
 		stats.VideoCodec = videoStream.CodecName
 		stats.Pixfmt = videoStream.Pixfmt
+		stats.Width = videoStream.Width
 		stats.Height = videoStream.Height
 		// FPS
 		fpsSplit := strings.Split(videoStream.Framerate, "/")
 		n1, _ := strconv.ParseFloat(fpsSplit[0], 64)
 		n2, _ := strconv.ParseFloat(fpsSplit[1], 64)
 		stats.FPS = n1 / n2
+		// HDR detect
+		if len(probeOutput.Frames[0].SideDataList) != 0 {
+			for i := range probeOutput.Frames[0].SideDataList {
+				if probeOutput.Frames[0].SideDataList[i].Type == "Mastering display metadata" {
+					stats.IsHDR = true
+				}
+			}
+		}
 	}
 	// Other
 	stats.Duration, _ = strconv.ParseFloat(probeOutput.Format.Duration, 64)
@@ -95,6 +105,15 @@ func GetStats(filepath string, audioonly bool) *VidStats {
 		stats.AudioBitrate, _ = strconv.ParseFloat(audioStream.Bitrate, 64)
 		stats.SampleRate, _ = strconv.Atoi(audioStream.Samplerate)
 		stats.AudioChannels = audioStream.Channels
+	}
+	// Subtitles
+	for i := range probeOutput.Streams {
+		if probeOutput.Streams[i].StreamType == "subtitle" {
+			if probeOutput.Streams[i].Tags.Language == settings.Advanced.SubfinderLang && !stats.MatchingSubs {
+				stats.MatchingSubs = true
+				stats.SubtitleStream = i
+			}
+		}
 	}
 
 	// Bitrates -> k

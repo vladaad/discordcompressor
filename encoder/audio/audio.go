@@ -7,33 +7,49 @@ import (
 	"os"
 )
 
-func EncodeAudio (inFilename string, UUID string, inBitrate float64, container string, eOptions *settings.AudioEncoder, stats *metadata.VidStats, startingTime float64,  totalTime float64) (outBitrate float64, outFilename string) {
+func EncodeAudio (video *settings.Video) (outBitrate float64, outFilename string) {
 	// filename
-	outFilenameBase := UUID + "."
+	outFilenameBase := video.UUID + "."
 	// normalize audio
 	lnParams := new(LoudnormParams)
-	if settings.Advanced.NormalizeAudio {
-		dec := decodeAudio(inFilename, startingTime, totalTime, false, stats, lnParams)
+	if video.Input.AudioChannels > 2 {
+		video.Output.Audio.Normalize = true
+	}
+	if video.Output.Audio.Normalize {
+		dec := decodeAudio(video, lnParams)
 		lnParams = detectVolume(dec)
+		if isAudioSilent(lnParams) {
+			return 0.0, ""
+		}
 	}
 	// start decoding
-	dec := decodeAudio(inFilename, startingTime, totalTime, settings.Advanced.NormalizeAudio, stats, lnParams)
+	dec := decodeAudio(video, lnParams)
 	// encode
-	switch eOptions.Type {
+	switch video.Output.Audio.Encoder.Type {
 	case "ffmpeg":
-		outFilename = outFilenameBase + container
-		encFFmpeg(outFilename, inBitrate, eOptions, dec)
+		outFilename = outFilenameBase + video.Output.Video.Encoder.Container
+		encFFmpeg(outFilename, video, dec)
 	case "qaac":
 		outFilename = outFilenameBase + "m4a"
-		encQaac(outFilename, inBitrate, eOptions, dec)
+		encQaac(outFilename, video, dec)
+	case "fdkaac":
+		outFilename = outFilenameBase + "m4a"
+		encFDKaac(outFilename, video, dec)
 	default:
-		log.Println("Encoder type " + eOptions.Type + " not found")
+		log.Println("Encoder type " + video.Output.Audio.Encoder.Type + " not found")
 		os.Exit(0)
 	}
 	// bitrate
 	if !settings.DryRun {
 		return metadata.GetStats(outFilename, true).Bitrate, outFilename
 	} else {
-		return inBitrate, outFilename
+		return video.Output.Audio.Bitrate, outFilename
 	}
+}
+
+func isAudioSilent (params *LoudnormParams) bool {
+	if params.LRA == "-inf" || params.Thresh == "-inf" || params.IL == "-inf" || params.TP == "-inf" {
+		return true
+	}
+	return false
 }

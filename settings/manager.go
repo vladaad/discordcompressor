@@ -22,7 +22,6 @@ func initStorage() {
 
 func LoadSettings(version string) bool {
 	initStorage()
-
 	fileName := utils.SettingsDir()
 	fileName += "/settings"
 	if version != "" {
@@ -34,6 +33,7 @@ func LoadSettings(version string) bool {
 	defer file.Close()
 
 	if os.IsNotExist(err) {
+		populateSettings()
 		saveSettings(fileName, fileStorage)
 		return true
 	} else if err != nil {

@@ -10,13 +10,13 @@ import (
 	"strings"
 )
 
-func encQaac(outFilename string, video *settings.Video, input io.ReadCloser) {
+func encFDKaac(outFilename string, video *settings.Video, input io.ReadCloser) {
 	var options []string
 	encoderSettings := strings.Split(video.Output.Audio.Encoder.Options, " ")
 
 	// Encoding options
 	if video.Output.Audio.Encoder.UsesBitrate {
-		options = append(options, "-a", strconv.FormatFloat(video.Output.Audio.Bitrate, 'f', -1, 64))
+		options = append(options, "-b", strconv.FormatFloat(video.Output.Audio.Bitrate, 'f', -1, 64))
 	}
 	if video.Output.Audio.Encoder.Options != "" {
 		options = append(options, encoderSettings...)
@@ -31,7 +31,7 @@ func encQaac(outFilename string, video *settings.Video, input io.ReadCloser) {
 
 	// Running
 	if !settings.DryRun {
-		cmd := exec.Command(settings.General.QaacExecutable, options...)
+		cmd := exec.Command(settings.General.FDKaacExecutable, options...)
 
 		cmd.Stdin = input
 

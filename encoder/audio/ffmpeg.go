@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-func encFFmpeg(outFilename string, bitrate float64, eOptions *settings.AudioEncoder, input io.ReadCloser) {
+func encFFmpeg(outFilename string, video *settings.Video, input io.ReadCloser) {
 	var options []string
-	encoderSettings := strings.Split(eOptions.Options, " ")
+	encoderSettings := strings.Split(video.Output.Audio.Encoder.Options, " ")
 
 	// Input options
 	if settings.Debug {
@@ -29,14 +29,14 @@ func encFFmpeg(outFilename string, bitrate float64, eOptions *settings.AudioEnco
 
 	// Encoding options
 	options = append(options,
-		"-c:a", eOptions.Encoder,
+		"-c:a", video.Output.Audio.Encoder.Encoder,
 	)
-	if eOptions.Options != "" {
+	if video.Output.Audio.Encoder.Options != "" {
 		options = append(options, encoderSettings...)
 	}
-	if eOptions.UsesBitrate {
+	if video.Output.Audio.Encoder.UsesBitrate {
 		options = append(options,
-			"-b:a", strconv.FormatFloat(bitrate, 'f', -1, 64) + "k",
+			"-b:a", strconv.FormatFloat(video.Output.Audio.Bitrate, 'f', -1, 64) + "k",
 		)
 	}
 	options = append(options, "-map", "0:a:0")

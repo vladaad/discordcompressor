@@ -3,17 +3,21 @@
 A small program in Go that efficiently compresses videos using ffmpeg.
 
 ## Dependencies
-[FFmpeg](https://ffmpeg.org/) including FFprobe
+[FFmpeg](https://ffmpeg.org) including FFprobe
 ### Optional (needed for some settings options)
 [qaac](https://github.com/nu774/qaac)
+[fdkaac](https://github.com/nu774/fdkaac)
 
 ## Usage
 `discordcompressor <arguments> <input video(s)>`
+ * `-o filename` - Sets the output filename, extension is automatically added
  * `-focus string` - Sets the focus - for example, "framerate" or "resolution" (configured in settings.json)
  * `-mixaudio` - Mixes all audio tracks into one
+ * `-normalize` - Normalizes audio volume
  * `-noscale` - Disables FPS limiting and scaling (not recommended)
  * `-reenc string` - Force re-encodes audio or video ("a", "v", "av")
  * `-settings string` - Selects the settings file - for example, settings-test.json.
+ * `-forcescore 60` - Forces a specific benchmark score when generating settings. Higher = slower, but higher-quality settings.
  * `-size 8` - Sets the target size in MB
  * `-last 10` - Compresses the last x seconds of a video
  * `-ss 15` - Sets the starting time like in ffmpeg

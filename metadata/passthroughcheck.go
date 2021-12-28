@@ -5,27 +5,26 @@ import (
 	"github.com/vladaad/discordcompressor/utils"
 )
 
-func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate float64, videoStats *VidStats, startingTime float64, totalTime float64, vEncoder *settings.Encoder, aEncoder *settings.AudioEncoder) (audioCompatible bool, videoCompatible bool, audioBitrateOut float64) {
-	audioCompatible, videoCompatible = false, false
+func CheckStreamCompatibility(video *settings.Video) *settings.Video {
 	// If bitrate wasn't able to be analyzed, analyze it
-	if (videoStats.AudioBitrate == 0 || videoStats.VideoBitrate == 0) && videoStats.AudioTracks != 0 {
-		videoStats.AudioBitrate = AnalyzeAudio(filename)
+	if (video.Input.AudioBitrate == 0 || video.Input.VideoBitrate == 0) && video.Input.AudioTracks != 0 {
+		video.Input.AudioBitrate = AnalyzeAudio(video.Filename)
 	}
-	format := findCurrentFormat(vEncoder.Container)
-	audioFmt := findACodec(videoStats.AudioCodec, format)
-	videoFmt := findVCodec(videoStats.VideoCodec, format)
+	format := findCurrentFormat(video.Output.Video.Encoder.Container)
+	audioFmt := findACodec(video.Input.AudioCodec, format)
+	videoFmt := findVCodec(video.Input.VideoCodec, format)
 	// VB calc
-	if videoStats.AudioTracks != 0 {
-		videoStats.VideoBitrate = videoStats.Bitrate - videoStats.AudioBitrate
+	if video.Input.VideoBitrate != 0 {
+		video.Input.VideoBitrate = video.Input.Bitrate - video.Input.AudioBitrate
 	} else {
-		videoStats.VideoBitrate = videoStats.Bitrate
+		video.Input.VideoBitrate = video.Input.Bitrate
 	}
 	// To save you from understanding this spaghetti, the audio has to be:
 	// The same codec as would normally be encoded
 	// Below max bitrate
-	if audioFmt != nil && videoStats.AudioBitrate < aEncoder.MaxBitrate && videoStats.AudioTracks != 0 {
-		audioCompatible = true
-		audioBitrateIn = videoStats.AudioBitrate
+	if audioFmt != nil && video.Input.AudioBitrate < video.Output.Audio.Encoder.MaxBitrate && video.Input.AudioTracks != 0 {
+		video.Output.Audio.Passthrough = true
+		video.Output.Audio.Bitrate = video.Input.AudioBitrate
 	}
 
 	// The conditions for video compatibility:
@@ -33,24 +32,24 @@ func CheckStreamCompatibility(filename string, audioBitrateIn float64, bitrate f
 	// Video bitrate must be detected
 	// Audio should be passed through too
 	// Video bitrate must be below total bitrate
-	if videoFmt != nil && utils.Contains(videoStats.Pixfmt, videoFmt.PixFmts) {
-		if audioCompatible && bitrate > videoStats.Bitrate {
-			videoCompatible = true
-		} else if videoStats.VideoBitrate < bitrate - audioBitrateIn {
-			videoCompatible = true
+	if videoFmt != nil && utils.Contains(video.Input.Pixfmt, videoFmt.PixFmts) {
+		if video.Output.Audio.Passthrough && video.Output.TotalBitrate > video.Input.Bitrate {
+			video.Output.Video.Passthrough = true
+		} else if video.Input.VideoBitrate < video.Output.TotalBitrate - video.Output.Audio.Bitrate {
+			video.Output.Video.Passthrough = true
 		}
 	}
 
 	// I'm not dealing with times and passthrough, fuck that
-	if totalTime != float64(0) || startingTime != float64(0) {
-		audioCompatible, videoCompatible = false, false
+	if video.Time.Time != video.Input.Duration || video.Time.Start != float64(0) {
+		video.Output.Video.Passthrough, video.Output.Audio.Passthrough = false, false
 	}
 
-	if settings.MixTracks || settings.Advanced.NormalizeAudio {
-		audioCompatible = false
+	if video.Output.Audio.Mix || video.Output.Audio.Normalize {
+		video.Output.Audio.Passthrough = false
 	}
 
-	return audioCompatible, videoCompatible, audioBitrateIn
+	return video
 }
 
 // yes there are better ways to do this but I am lazy
