@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func decodeAudio (video *settings.Video, lnParams *LoudnormParams) io.ReadCloser {
@@ -47,7 +48,7 @@ func decodeAudio (video *settings.Video, lnParams *LoudnormParams) io.ReadCloser
 		options = append(options, "-ac", "2")
 	}
 
-	if video.Output.Audio.Encoder.CodecName == "aac" {
+	if strings.Contains(video.Output.Audio.Encoder.CodecName, "aac") {
 		options = append(options, "-ar", "44100")
 	} else {
 		options = append(options, "-ar", "48000")
