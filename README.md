@@ -19,6 +19,7 @@ A small program in Go that efficiently compresses videos using ffmpeg.
  * `-settings string` - Selects the settings file - for example, settings-test.json.
  * `-forcescore 60` - Forces a specific benchmark score when generating settings. Higher = slower, but higher-quality settings.
  * `-size 8` - Sets the target size in MB
+ * `-subfind string` - Finds a certain string in subtitles and cuts according to it
  * `-last 10` - Compresses the last x seconds of a video
  * `-ss 15` - Sets the starting time like in ffmpeg
  * `-t 10` - Sets the time to encode after the start of the file or `-ss`
