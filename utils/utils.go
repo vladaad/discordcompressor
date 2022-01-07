@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/vladaad/discordcompressor/build"
 	"log"
 	"os"
 	"os/exec"
@@ -64,15 +65,16 @@ func NullDir() string {
 }
 
 func SettingsDir() string {
-	var dir string
-	switch runtime.GOOS {
-	case "windows":
-		dir = os.Getenv("APPDATA") + "\\vladaad\\dc"
-	default:
-		home, _ := os.UserHomeDir()
-		dir = home + "/.config/vladaad/dc"
+	var dir = "."
+	if build.BUILD != "portable" {
+		switch runtime.GOOS {
+		case "windows":
+			dir = os.Getenv("APPDATA") + "\\vladaad\\dc"
+		default:
+			home, _ := os.UserHomeDir()
+			dir = home + "/.config/vladaad/dc"
+		}
 	}
-
 	return dir
 }
 
