@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -65,17 +66,18 @@ func NullDir() string {
 }
 
 func SettingsDir() string {
-	var dir = "."
-	if build.BUILD != "portable" {
+	if build.BUILD == "portable" {
+		fpath, _ := os.Executable()
+		return filepath.Dir(fpath)
+	} else {
 		switch runtime.GOOS {
 		case "windows":
-			dir = os.Getenv("APPDATA") + "\\vladaad\\dc"
+			return os.Getenv("APPDATA") + "\\vladaad\\dc"
 		default:
 			home, _ := os.UserHomeDir()
-			dir = home + "/.config/vladaad/dc"
+			return home + "/.config/vladaad/dc"
 		}
 	}
-	return dir
 }
 
 func CheckIfPresent(filename string) bool {
