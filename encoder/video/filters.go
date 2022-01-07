@@ -34,6 +34,11 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 		filters = append(filters, "subtitles=si=" + strconv.Itoa(video.Input.SubtitleStream) + ":f=" + video.Output.Subs.SubFile)
 	}
 
+	// Pixfmt conversion
+	if video.Input.Pixfmt != video.Output.Video.Encoder.Pixfmt {
+		filters = append(filters, "format=" + video.Output.Video.Encoder.Pixfmt)
+	}
+
 	// Resolution
 	vertRes = video.Input.Height
 	if video.Input.Height > video.Output.Video.Limits.VResMax || float64(video.Input.Width) > float64(video.Output.Video.Limits.VResMax) / 0.5625 {
@@ -46,12 +51,17 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 		} else {
 			scaleExpr = "-2:" + strconv.Itoa(video.Output.Video.Limits.VResMax)
 		}
-		if pass == 1 {
-			scaleAlgo = "bilinear"
-		} else {
-			scaleAlgo = "spline"
+		switch settings.Decoding.ScalingHWAccel {
+		case "cuda":
+			filters = append(filters, "hwupload_cuda,scale_cuda=" + scaleExpr + ":lanczos,hwdownload,format=" + video.Output.Video.Encoder.Pixfmt)
+		default:
+			if pass == 1 {
+				scaleAlgo = "bilinear"
+			} else {
+				scaleAlgo = "spline"
+			}
+			filters = append(filters, "scale=" + scaleExpr + ":flags=" + scaleAlgo)
 		}
-		filters = append(filters, "scale=" + scaleExpr + ":flags=" + scaleAlgo)
 	}
 
 	// HDR tonemapping
@@ -61,11 +71,6 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 		} else {
 			filters = append(filters, "zscale=transfer=linear,tonemap=mobius,zscale=transfer=bt709")
 		}
-	}
-
-	// Pixfmt conversion
-	if video.Input.Pixfmt != video.Output.Video.Encoder.Pixfmt {
-		filters = append(filters, "format=" + video.Output.Video.Encoder.Pixfmt)
 	}
 
 	return strings.Join(filters, ","), vertRes, FPS
