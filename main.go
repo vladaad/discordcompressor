@@ -158,8 +158,6 @@ func main() {
 
 func compress(inVideo string) bool {
 	var prefix string
-	var totalTime float64
-	var startingTime float64
 	defer wg.Done()
 	// Logging
 	_, cleanName := path.Split(strings.ReplaceAll(inVideo, "\\", "/"))
@@ -218,14 +216,12 @@ func compress(inVideo string) bool {
 			video.Time.Start = video.Input.Duration - lastSeconds
 			video.Time.Time = lastSeconds
 		} else { // ss+t
+			if video.Time.Start != 0 {
+				video.Time.Time = video.Input.Duration - video.Time.Start
+			}
 			if video.Time.Start + video.Time.Time > video.Input.Duration {
 				log.Println(prefix + "Invalid length!")
 				return false
-			}
-			if totalTime != 0 {
-				video.Time.Time = totalTime
-			} else if startingTime != 0 {
-				video.Time.Time -= startingTime
 			}
 		}
 	}
