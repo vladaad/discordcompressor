@@ -130,7 +130,9 @@ func init() {
 	}
 
 	// enable batch mode - stdout
-	if len(input) > 1 && settings.General.BatchModeThreads > 1 {settings.BatchMode = true}
+	if len(input) > 1 && settings.General.BatchModeThreads > 1 {
+		settings.BatchMode = true
+	}
 
 	if settings.Debug || !settings.BatchMode {
 		settings.ShowStdOut = true
@@ -153,7 +155,9 @@ func main() {
 		}
 	}
 	wg.Wait()
-	if len(input) > 1 {log.Println("All files completed!")}
+	if len(input) > 1 {
+		log.Println("All files completed!")
+	}
 }
 
 func compress(inVideo string) bool {
@@ -161,7 +165,9 @@ func compress(inVideo string) bool {
 	defer wg.Done()
 	// Logging
 	_, cleanName := path.Split(strings.ReplaceAll(inVideo, "\\", "/"))
-	if settings.BatchMode{prefix = "[" + cleanName + "] "}
+	if settings.BatchMode {
+		prefix = "[" + cleanName + "] "
+	}
 	log.Println("Compressing " + cleanName)
 
 	// Initialize video
@@ -216,10 +222,10 @@ func compress(inVideo string) bool {
 			video.Time.Start = video.Input.Duration - lastSeconds
 			video.Time.Time = lastSeconds
 		} else { // ss+t
-			if video.Time.Start != 0 {
+			if video.Time.Start != 0 && video.Time.Time == video.Input.Duration {
 				video.Time.Time = video.Input.Duration - video.Time.Start
 			}
-			if video.Time.Start + video.Time.Time > video.Input.Duration {
+			if video.Time.Start+video.Time.Time > video.Input.Duration {
 				log.Println(prefix + "Invalid length!")
 				return false
 			}
@@ -259,8 +265,12 @@ func compress(inVideo string) bool {
 	hasAudio := true
 	video.Output.Audio.Bitrate = metadata.CalcAudioBitrate(video)
 	video = metadata.CheckStreamCompatibility(video)
-	if reEncA {video.Output.Audio.Passthrough = false}
-	if reEncV {video.Output.Video.Passthrough = false}
+	if reEncA {
+		video.Output.Audio.Passthrough = false
+	}
+	if reEncV {
+		video.Output.Video.Passthrough = false
+	}
 
 	// Audio encoding
 	if !video.Output.Audio.Passthrough && video.Input.AudioTracks != 0 {
@@ -287,11 +297,13 @@ func compress(inVideo string) bool {
 		}
 	}
 
-	suffix := strings.ReplaceAll(settings.General.OutputSuffix, "%s", strconv.FormatFloat(video.Size / 8192, 'f', -1, 64))
+	suffix := strings.ReplaceAll(settings.General.OutputSuffix, "%s", strconv.FormatFloat(video.Size/8192, 'f', -1, 64))
 	outFilename := strings.TrimSuffix(video.Filename, path.Ext(video.Filename)) + suffix + "." + video.Output.Video.Encoder.Container
 
 	// Custom output filename
-	if customOutputFile != "" {outFilename = customOutputFile + "." + video.Output.Video.Encoder.Container}
+	if customOutputFile != "" {
+		outFilename = customOutputFile + "." + video.Output.Video.Encoder.Container
+	}
 
 	// Subtitle extraction
 	video.Output.Subs.BurnSubs = settings.Advanced.BurnSubtitles
@@ -328,7 +340,9 @@ func compress(inVideo string) bool {
 	os.Remove(video.UUID + "-0.log")
 	os.Remove(video.UUID + "-0.log.mbtree")
 
-	if hasAudio{os.Remove(video.Output.Audio.Filename)}
+	if hasAudio {
+		os.Remove(video.Output.Audio.Filename)
+	}
 
 	log.Println("Finished compressing " + cleanName + "!")
 
