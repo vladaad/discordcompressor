@@ -7,8 +7,8 @@ import (
 
 type Line struct {
 	startTime float64
-	endTime float64
-	text string
+	endTime   float64
+	text      string
 }
 
 func parseASS(input string) []*Line {
@@ -23,14 +23,14 @@ func parseASS(input string) []*Line {
 		line := split[i]
 		if strings.Contains(line, "[Events]") {
 			eventsFound = true
-			startLine = i+2
+			startLine = i + 2
 		}
 		if strings.HasPrefix(line, "Format:") && eventsFound {
 			clearedPrefix := strings.ReplaceAll(line, "Format: ", "")
 			cleanedSpaces := strings.ReplaceAll(clearedPrefix, " ", "")
 			format := strings.Split(cleanedSpaces, ",")
 			for i := range format {
-				if strings.Contains(format[i], "Text"){
+				if strings.Contains(format[i], "Text") {
 					textPos = i
 				}
 				if strings.Contains(format[i], "Start") {

@@ -11,7 +11,7 @@ func FindTime(video *settings.Video, find string) (start float64, end float64) {
 	var args []string
 
 	args = append(args, "-i", video.Filename)
-	args = append(args, "-map", "0:" + strconv.Itoa(video.Input.SubtitleStream))
+	args = append(args, "-map", "0:"+strconv.Itoa(video.Input.SubtitleStream))
 	args = append(args, "-f", "ass")
 	args = append(args, "-")
 

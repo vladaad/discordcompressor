@@ -9,9 +9,9 @@ import (
 func addMetadata(video *settings.Video, vertRes int, FPS float64) []string {
 	var options []string
 
-	options = append(options, "-metadata:s:v:0", "title=" + strconv.FormatFloat(settings.TargetSize, 'f', 0, 64 ) + "mb video compressed using DiscordCompressor " + build.VERSION + " | " + generateVideoDescription(video, vertRes, FPS))
+	options = append(options, "-metadata:s:v:0", "title="+strconv.FormatFloat(settings.TargetSize, 'f', 0, 64)+"mb video compressed using DiscordCompressor "+build.VERSION+" | "+generateVideoDescription(video, vertRes, FPS))
 	if video.Output.Audio.Bitrate > 0 {
-		options = append(options, "-metadata:s:a:0", "title=" + generateAudioDescription(video))
+		options = append(options, "-metadata:s:a:0", "title="+generateAudioDescription(video))
 	}
 
 	return options
@@ -69,7 +69,6 @@ func generateAudioDescription(video *settings.Video) (description string) {
 		description = description + " | "
 		description = description + video.Output.Audio.Encoder.Options
 	}
-
 
 	return description
 }

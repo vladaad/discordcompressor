@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func decodeAudio (video *settings.Video, lnParams *LoudnormParams) io.ReadCloser {
+func decodeAudio(video *settings.Video, lnParams *LoudnormParams) io.ReadCloser {
 	var options []string
 	dontDownmix := []int{1, 2, 6, 8}
 
@@ -37,7 +37,9 @@ func decodeAudio (video *settings.Video, lnParams *LoudnormParams) io.ReadCloser
 	}
 	filters, mapping := filters(video, lnParams)
 
-	if filters != "" {options = append(options, "-filter_complex", filters)}
+	if filters != "" {
+		options = append(options, "-filter_complex", filters)
+	}
 	options = append(options, "-map", mapping)
 
 	// Mapping

@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func EncodeAudio (video *settings.Video) (outBitrate float64, outFilename string) {
+func EncodeAudio(video *settings.Video) (outBitrate float64, outFilename string) {
 	// filename
 	outFilenameBase := video.UUID + "."
 	// normalize audio
@@ -47,7 +47,7 @@ func EncodeAudio (video *settings.Video) (outBitrate float64, outFilename string
 	}
 }
 
-func isAudioSilent (params *LoudnormParams) bool {
+func isAudioSilent(params *LoudnormParams) bool {
 	if params.LRA == "-inf" || params.Thresh == "-inf" || params.IL == "-inf" || params.TP == "-inf" {
 		return true
 	}

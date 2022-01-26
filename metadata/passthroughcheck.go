@@ -35,7 +35,7 @@ func CheckStreamCompatibility(video *settings.Video) *settings.Video {
 	if videoFmt != nil && utils.Contains(video.Input.Pixfmt, videoFmt.PixFmts) {
 		if video.Output.Audio.Passthrough && video.Output.TotalBitrate > video.Input.Bitrate {
 			video.Output.Video.Passthrough = true
-		} else if video.Input.VideoBitrate < video.Output.TotalBitrate - video.Output.Audio.Bitrate {
+		} else if video.Input.VideoBitrate < video.Output.TotalBitrate-video.Output.Audio.Bitrate {
 			video.Output.Video.Passthrough = true
 		}
 	}

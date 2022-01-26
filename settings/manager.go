@@ -13,10 +13,10 @@ var fileStorage *fileformat
 
 func initStorage() {
 	fileStorage = &fileformat{
-		General:   General,
-		Decoding:  Decoding,
-		Encoding:  Encoding,
-		Advanced:  Advanced,
+		General:  General,
+		Decoding: Decoding,
+		Encoding: Encoding,
+		Advanced: Advanced,
 	}
 }
 
