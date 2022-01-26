@@ -23,14 +23,14 @@ func CalcTotalBitrate(video *settings.Video) (float64, bool) {
 
 func CalcAudioBitrate(video *settings.Video) float64 {
 	// Audio calc
-    mult := 1.0
-    if video.Input.AudioChannels == 1 {
-    	mult = 0.5
+	mult := 1.0
+	if video.Input.AudioChannels == 1 {
+		mult = 0.5
 	}
 	AudioBitrate := video.Output.TotalBitrate * mult * float64(video.Output.Audio.Encoder.BitratePerc) / float64(100)
 
-	AudioBitrate = math.Min(AudioBitrate, video.Output.Audio.Encoder.MaxBitrate * mult)
-	AudioBitrate = math.Max(AudioBitrate, video.Output.Audio.Encoder.MinBitrate * mult)
+	AudioBitrate = math.Min(AudioBitrate, video.Output.Audio.Encoder.MaxBitrate*mult)
+	AudioBitrate = math.Max(AudioBitrate, video.Output.Audio.Encoder.MinBitrate*mult)
 
 	return AudioBitrate
 }

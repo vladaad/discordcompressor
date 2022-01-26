@@ -2,10 +2,10 @@ package settings
 
 var Advanced = initAdvanced()
 
-func initAdvanced () *advanced{
+func initAdvanced() *advanced {
 	return &advanced{
-		MixAudioTracks: false,
-		NormalizeAudio: false,
+		MixAudioTracks:    false,
+		NormalizeAudio:    false,
 		DeduplicateFrames: true,
 		SubfinderLang:     "eng",
 		BurnSubtitles:     false,
@@ -14,29 +14,29 @@ func initAdvanced () *advanced{
 		CompatibleFormats: []*Format{{
 			Container: "mp4",
 			CompatibleVideoCodecs: []*VideoCodec{{
-				Name: "h264",
+				Name:    "h264",
 				PixFmts: []string{"yuv420p"},
 			}},
-			CompatibleAudioCodecs: []*AudioCodec {{
-				Name: "aac",
-				SampleRates: []int{22050, 32000, 44100, 48000},
+			CompatibleAudioCodecs: []*AudioCodec{{
+				Name:          "aac",
+				SampleRates:   []int{22050, 32000, 44100, 48000},
 				AudioChannels: []int{1, 2},
 			}}}, {
 			Container: "webm",
 			CompatibleVideoCodecs: []*VideoCodec{{
-				Name: "h264",
+				Name:    "h264",
 				PixFmts: []string{"yuv420p"},
 			}, {
-				Name: "vp9",
+				Name:    "vp9",
 				PixFmts: []string{"yuv420p", "yuv420p10le"},
 			}},
-			CompatibleAudioCodecs: []*AudioCodec {{
-				Name: "aac",
-				SampleRates: []int{22050, 32000, 44100, 48000},
+			CompatibleAudioCodecs: []*AudioCodec{{
+				Name:          "aac",
+				SampleRates:   []int{22050, 32000, 44100, 48000},
 				AudioChannels: []int{1, 2},
 			}, {
-				Name: "opus",
-				SampleRates: []int{22050, 32000, 44100, 48000},
+				Name:          "opus",
+				SampleRates:   []int{22050, 32000, 44100, 48000},
 				AudioChannels: []int{1, 2},
 			}},
 		},
@@ -67,7 +67,7 @@ type VideoCodec struct {
 }
 
 type AudioCodec struct {
-	Name           string
-	SampleRates    []int
-	AudioChannels  []int
+	Name          string
+	SampleRates   []int
+	AudioChannels []int
 }

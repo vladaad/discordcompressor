@@ -11,7 +11,7 @@ func filters(video *settings.Video, lnParams *LoudnormParams) (filter string, ma
 	var inputs []string
 	if video.Output.Audio.Mix {
 		for i := 0; i < video.Input.AudioTracks; i++ {
-			inputs = append(inputs, "[0:a:" + strconv.Itoa(i) + "]")
+			inputs = append(inputs, "[0:a:"+strconv.Itoa(i)+"]")
 		}
 	} else {
 		inputs = []string{"[0:a:0]"}
@@ -46,10 +46,10 @@ func filters(video *settings.Video, lnParams *LoudnormParams) (filter string, ma
 		filter = append(filter, inputs...)
 		filter = append(filter, "loudnorm=linear=true:i=-14:lra=7:tp=-1")
 
-		filter = append(filter, ":measured_i=" + lnParams.IL)
-		filter = append(filter, ":measured_lra=" + lnParams.LRA)
-		filter = append(filter, ":measured_tp=" + lnParams.TP)
-		filter = append(filter, ":measured_thresh=" + lnParams.Thresh)
+		filter = append(filter, ":measured_i="+lnParams.IL)
+		filter = append(filter, ":measured_lra="+lnParams.LRA)
+		filter = append(filter, ":measured_tp="+lnParams.TP)
+		filter = append(filter, ":measured_thresh="+lnParams.Thresh)
 
 		filter = append(filter, "[voladj]")
 		filters = append(filters, strings.Join(filter, ""))

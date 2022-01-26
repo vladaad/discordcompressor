@@ -13,7 +13,7 @@ import (
 type LoudnormParams struct {
 	IL     string `json:"input_i"`
 	LRA    string `json:"input_lra"`
-	TP     string` json:"input_tp"`
+	TP     string ` json:"input_tp"`
 	Thresh string `json:"input_thresh"`
 }
 
@@ -46,13 +46,13 @@ func detectVolume(input io.ReadCloser) *LoudnormParams {
 	var lines []string
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if strings.Contains(line,"{") {
+		if strings.Contains(line, "{") {
 			foundJson = true
 		}
 		if foundJson {
 			lines = append(lines, line)
 		}
-		if strings.Contains(line,"}") {
+		if strings.Contains(line, "}") {
 			foundJson = false
 		}
 	}

@@ -19,51 +19,51 @@ func generateAudioEncoder() *AudioEncoder {
 	var encoder *AudioEncoder
 	if utils.CheckIfPresent("qaac64") {
 		encoder = &AudioEncoder{
-			Name:         "aac",
-			Type:         "qaac",
-			Encoder:      "",
-			CodecName:    "aac",
-			Options:      "-V 64",
-			UsesBitrate:  false,
-			MaxBitrate:   144,
-			MinBitrate:   96,
-			BitratePerc:  10,
+			Name:        "aac",
+			Type:        "qaac",
+			Encoder:     "",
+			CodecName:   "aac",
+			Options:     "-V 64",
+			UsesBitrate: false,
+			MaxBitrate:  144,
+			MinBitrate:  96,
+			BitratePerc: 10,
 		}
 	} else if strings.Contains(utils.CommandOutput("ffmpeg", []string{"-h", "encoder=libfdk_aac"}), "Fraunhofer FDK AAC") {
 		encoder = &AudioEncoder{
-			Name:         "aac",
-			Type:         "ffmpeg",
-			Encoder:      "libfdk_aac",
-			CodecName:    "aac",
-			Options:      "-vbr 3",
-			UsesBitrate:  false,
-			MaxBitrate:   144,
-			MinBitrate:   96,
-			BitratePerc:  10,
+			Name:        "aac",
+			Type:        "ffmpeg",
+			Encoder:     "libfdk_aac",
+			CodecName:   "aac",
+			Options:     "-vbr 3",
+			UsesBitrate: false,
+			MaxBitrate:  144,
+			MinBitrate:  96,
+			BitratePerc: 10,
 		}
 	} else if utils.CheckIfPresent("fdkaac") {
 		encoder = &AudioEncoder{
-			Name:         "aac",
-			Type:         "fdkaac",
-			Encoder:      "",
-			CodecName:    "aac",
-			Options:      "-m 3",
-			UsesBitrate:  true,
-			MaxBitrate:   144,
-			MinBitrate:   96,
-			BitratePerc:  10,
+			Name:        "aac",
+			Type:        "fdkaac",
+			Encoder:     "",
+			CodecName:   "aac",
+			Options:     "-m 3",
+			UsesBitrate: true,
+			MaxBitrate:  144,
+			MinBitrate:  96,
+			BitratePerc: 10,
 		}
 	} else {
 		encoder = &AudioEncoder{
-			Name:         "aac",
-			Type:         "ffmpeg",
-			Encoder:      "aac",
-			CodecName:    "aac",
-			Options:      "",
-			UsesBitrate:  true,
-			MaxBitrate:   192,
-			MinBitrate:   160,
-			BitratePerc:  10,
+			Name:        "aac",
+			Type:        "ffmpeg",
+			Encoder:     "aac",
+			CodecName:   "aac",
+			Options:     "",
+			UsesBitrate: true,
+			MaxBitrate:  192,
+			MinBitrate:  160,
+			BitratePerc: 10,
 		}
 		// use twoloop if possible
 		if strings.Contains(utils.CommandOutput("ffmpeg", []string{"-h", "encoder=aac"}), "twoloop") {
@@ -119,7 +119,7 @@ func selectPresets() {
 		presetN = int(math.Min(float64(presetN), float64(slowest))) // clamp to slowest
 		presetN = int(math.Max(float64(presetN), float64(fastest))) // clamp to fastest
 
- 		Encoding.BitrateTargets[i].Preset = presets[presetN]
+		Encoding.BitrateTargets[i].Preset = presets[presetN]
 	}
 }
 
@@ -130,7 +130,7 @@ func benchmarkx264() float64 {
 		"-f", "lavfi", "-i", "nullsrc=192x108", "-vframes", "60",
 		"-vf", "geq=random(1)*255:128:128,scale=-2:1080:flags=neighbor",
 		"-c:v", "libx264", "-preset", "fast", "-crf", "51", "-f", "null", utils.NullDir(),
-		)
+	)
 
 	start := time.Now()
 	err := cmd.Start()

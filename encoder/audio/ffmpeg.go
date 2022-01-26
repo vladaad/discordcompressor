@@ -36,7 +36,7 @@ func encFFmpeg(outFilename string, video *settings.Video, input io.ReadCloser) {
 	}
 	if video.Output.Audio.Encoder.UsesBitrate {
 		options = append(options,
-			"-b:a", strconv.FormatFloat(video.Output.Audio.Bitrate, 'f', -1, 64) + "k",
+			"-b:a", strconv.FormatFloat(video.Output.Audio.Bitrate, 'f', -1, 64)+"k",
 		)
 	}
 	options = append(options, "-map", "0:a:0")

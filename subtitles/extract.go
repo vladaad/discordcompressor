@@ -14,7 +14,6 @@ func ExtractSubs(video *settings.Video) string {
 
 	options = append(options, "-y", "-loglevel", "error")
 
-
 	options = append(options, "-i", video.Filename)
 	// the times have to be after the filename for subs to work nice
 	options = append(options, metadata.AppendTimes(video)...)

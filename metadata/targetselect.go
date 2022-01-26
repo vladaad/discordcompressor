@@ -4,7 +4,7 @@ import (
 	"github.com/vladaad/discordcompressor/settings"
 )
 
-func SelectEncoder (video *settings.Video) *settings.Video {
+func SelectEncoder(video *settings.Video) *settings.Video {
 	for i := range settings.Encoding.BitrateTargets {
 		if settings.Encoding.BitrateTargets[i].BitrateMin < video.Output.TotalBitrate {
 			target := settings.Encoding.BitrateTargets[i]
@@ -17,7 +17,7 @@ func SelectEncoder (video *settings.Video) *settings.Video {
 	panic("Could not find suitable bitrate target")
 }
 
-func encSelect (target *settings.Target) (*settings.Encoder, *settings.AudioEncoder) {
+func encSelect(target *settings.Target) (*settings.Encoder, *settings.AudioEncoder) {
 	for i := range settings.Encoding.Encoders {
 		if settings.Encoding.Encoders[i].Name == target.Encoder {
 			venc := settings.Encoding.Encoders[i]
@@ -28,7 +28,7 @@ func encSelect (target *settings.Target) (*settings.Encoder, *settings.AudioEnco
 	panic("Could not find video encoder " + target.Encoder)
 }
 
-func aencSelect (encoderName string) *settings.AudioEncoder {
+func aencSelect(encoderName string) *settings.AudioEncoder {
 	for i := range settings.Encoding.AudioEncoders {
 		if settings.Encoding.AudioEncoders[i].Name == encoderName {
 			return settings.Encoding.AudioEncoders[i]
