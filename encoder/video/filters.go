@@ -2,12 +2,14 @@ package vidEnc
 
 import (
 	"github.com/vladaad/discordcompressor/settings"
+	"github.com/vladaad/discordcompressor/utils"
 	"strconv"
 	"strings"
 )
 
 func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS float64) {
 	var filters []string
+	hardwareFrame := false
 	// FPS
 	FPS = video.Input.FPS
 	if float64(video.Output.Video.Limits.FPSMax) < video.Input.FPS && !settings.Original {
@@ -58,11 +60,15 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 		}
 		switch settings.Decoding.ScalingHWAccel {
 		case "cuda":
-			cudaExpr := "hwupload_cuda,scale_cuda=" + scaleExpr + ":bicubic"
+			var cudaExpr string
+			if !hardwareFrame {
+				cudaExpr += "hwupload_cuda"
+				hardwareFrame = true
+			}
+			cudaExpr += ",scale_cuda=" + scaleExpr + ":bicubic"
 			if cudaPixfmt {
 				cudaExpr += ":format=" + video.Output.Video.Encoder.Pixfmt
 			}
-			cudaExpr += ",hwdownload,format=" + video.Output.Video.Encoder.Pixfmt
 			filters = append(filters, cudaExpr)
 		default:
 			if pass == 1 {
@@ -72,16 +78,16 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 			}
 			filters = append(filters, "scale="+scaleExpr+":flags="+scaleAlgo)
 		}
-	} else if cudaPixfmt { // if scaling not needed
-		filters = append(filters, "hwupload_cuda,scale_cuda=format="+video.Output.Video.Encoder.Pixfmt+",hwdownload,format="+video.Output.Video.Encoder.Pixfmt)
 	}
-
+	if hardwareFrame && !utils.Contains(video.Output.Video.Encoder.Encoder, []string{"h264_nvenc", "hevc_nvenc"}) || video.Input.IsHDR {
+		filters = append(filters, "hwdownload,format="+video.Output.Video.Encoder.Pixfmt)
+	}
 	// HDR tonemapping
 	if video.Input.IsHDR {
 		if false /*settings.Decoding.TonemapHWAccel*/ {
 			filters = append(filters, "format=p010,hwupload,tonemap_opencl=tonemap=mobius:format=p010,hwdownload,format=p010")
 		} else {
-			filters = append(filters, "zscale=transfer=linear,tonemap=mobius,zscale=transfer=bt709")
+			filters = append(filters, "zscale=transfer=linear,tonemap=mobius,zscale=transfer=bt709,format="+video.Output.Video.Encoder.Pixfmt)
 		}
 	}
 
