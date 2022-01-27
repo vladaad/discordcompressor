@@ -35,8 +35,13 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 	}
 
 	// Pixfmt conversion
+	cudaPixfmt := false
 	if video.Input.Pixfmt != video.Output.Video.Encoder.Pixfmt {
-		filters = append(filters, "format="+video.Output.Video.Encoder.Pixfmt)
+		if settings.Decoding.ScalingHWAccel == "cuda" {
+			cudaPixfmt = true
+		} else {
+			filters = append(filters, "format="+video.Output.Video.Encoder.Pixfmt)
+		}
 	}
 
 	// Resolution
@@ -53,7 +58,12 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 		}
 		switch settings.Decoding.ScalingHWAccel {
 		case "cuda":
-			filters = append(filters, "hwupload_cuda,scale_cuda="+scaleExpr+":bicubic,hwdownload,format="+video.Output.Video.Encoder.Pixfmt)
+			cudaExpr := "hwupload_cuda,scale_cuda=" + scaleExpr + ":bicubic"
+			if cudaPixfmt {
+				cudaExpr += ":format=" + video.Output.Video.Encoder.Pixfmt
+			}
+			cudaExpr += ",hwdownload,format=" + video.Output.Video.Encoder.Pixfmt
+			filters = append(filters, cudaExpr)
 		default:
 			if pass == 1 {
 				scaleAlgo = "bilinear"
@@ -62,11 +72,13 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 			}
 			filters = append(filters, "scale="+scaleExpr+":flags="+scaleAlgo)
 		}
+	} else if cudaPixfmt { // if scaling not needed
+		filters = append(filters, "hwupload_cuda,scale_cuda=format="+video.Output.Video.Encoder.Pixfmt+",hwdownload,format="+video.Output.Video.Encoder.Pixfmt)
 	}
 
 	// HDR tonemapping
 	if video.Input.IsHDR {
-		if settings.Decoding.TonemapHWAccel {
+		if false /*settings.Decoding.TonemapHWAccel*/ {
 			filters = append(filters, "format=p010,hwupload,tonemap_opencl=tonemap=mobius:format=p010,hwdownload,format=p010")
 		} else {
 			filters = append(filters, "zscale=transfer=linear,tonemap=mobius,zscale=transfer=bt709")

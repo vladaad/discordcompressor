@@ -37,7 +37,8 @@ func Encode(video *settings.Video, outFilename string, pass int) bool {
 		"-y", "-hwaccel", settings.Decoding.HardwareAccel,
 	)
 	if video.Input.IsHDR && settings.Decoding.TonemapHWAccel {
-		options = append(options, "-init_hw_device", "opencl")
+		//options = append(options, "-init_hw_device", "opencl=ocl", "-filter_hw_device", "ocl")
+		log.Println("HDR tonemapping hardware acceleration disabled because of a bug")
 	}
 	options = append(options, times...)
 	options = append(options, "-i", video.Filename)
