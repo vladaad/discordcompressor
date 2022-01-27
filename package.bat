@@ -1,4 +1,4 @@
-wsl ./build.sh
+wsl ./build.sh %1
 set z="C:\Program Files\7-Zip\7z.exe"
 set options=-mmt1 -mx9
 %z% a %options% discordcompressor-windows.zip discordcompressor.exe
