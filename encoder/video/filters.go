@@ -48,7 +48,7 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 
 	// Resolution
 	vertRes = video.Input.Height
-	if video.Input.Height > video.Output.Video.Limits.VResMax || float64(video.Input.Width) > float64(video.Output.Video.Limits.VResMax)/0.5625 {
+	if (video.Input.Height > video.Output.Video.Limits.VResMax || float64(video.Input.Width) > float64(video.Output.Video.Limits.VResMax)/0.5625) && !settings.Original {
 		vertRes = video.Output.Video.Limits.VResMax
 		scaleExpr := ""
 		scaleAlgo := ""
@@ -66,7 +66,7 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 				hardwareFrame = true
 			}
 			cudaExpr += ",scale_cuda=" + scaleExpr + ":bicubic"
-			if cudaPixfmt {
+			if cudaPixfmt || settings.Decoding.HardwareAccel == "cuda" {
 				cudaExpr += ":format=" + video.Output.Video.Encoder.Pixfmt
 			}
 			filters = append(filters, cudaExpr)
