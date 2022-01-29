@@ -339,6 +339,7 @@ func compress(inVideo string) bool {
 	os.Remove(video.Output.Subs.SubFile)
 	os.Remove(video.UUID + "-0.log")
 	os.Remove(video.UUID + "-0.log.mbtree")
+	os.Remove("x264_lookahead.clbin")
 
 	if hasAudio {
 		os.Remove(video.Output.Audio.Filename)
