@@ -6,7 +6,7 @@ import (
 
 func SelectEncoder(video *settings.Video) *settings.Video {
 	for i := range settings.Encoding.BitrateTargets {
-		if settings.Encoding.BitrateTargets[i].BitrateMin < video.Output.TotalBitrate {
+		if settings.Encoding.BitrateTargets[i].BitrateMin*settings.Encoding.BitrateTargetMult < video.Output.TotalBitrate {
 			target := settings.Encoding.BitrateTargets[i]
 			video.Output.Video.Encoder, video.Output.Audio.Encoder = encSelect(target)
 			video.Output.Video.Limits = limitSelect(target, video)
