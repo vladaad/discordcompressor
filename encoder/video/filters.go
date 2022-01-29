@@ -25,7 +25,7 @@ func filters(video *settings.Video, pass int) (filter string, vertRes int, FPS f
 
 	// Deduplication
 	if settings.Advanced.DeduplicateFrames && !settings.Original {
-		maxframes := FPS - 1
+		maxframes := (FPS / 6) - 1
 		if maxframes >= 1 {
 			filters = append(filters, "mpdecimate=max="+strconv.FormatFloat(maxframes, 'f', 0, 64))
 		}
