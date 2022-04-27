@@ -2,54 +2,65 @@ package metadata
 
 import (
 	"github.com/vladaad/discordcompressor/settings"
+	"github.com/vladaad/discordcompressor/utils"
 	"log"
 	"math"
-	"strconv"
 )
 
-func CalcTotalBitrate(video *settings.Video) (float64, bool) {
-	bitrate := video.Size / video.Time.Time
-
-	bitrate = math.Min(bitrate, settings.Encoding.BitrateLimitMax)
-
-	if bitrate < settings.Encoding.BitrateLimitMin {
-		maxLength := video.Size / settings.Encoding.BitrateLimitMin
-		log.Println("File too long! Maximum length: " + strconv.FormatFloat(maxLength, 'f', 1, 64) + " seconds")
-		return 0, true
-	}
-
-	return bitrate, false
-}
-
-func CalcAudioBitrate(video *settings.Video) float64 {
-	// Audio calc
-	mult := 1.0
-	if video.Input.AudioChannels == 1 {
-		mult = 0.5
-	}
-	AudioBitrate := video.Output.TotalBitrate * mult * float64(video.Output.Audio.Encoder.BitratePerc) / float64(100)
-
-	AudioBitrate = math.Min(AudioBitrate, video.Output.Audio.Encoder.MaxBitrate*mult)
-	AudioBitrate = math.Max(AudioBitrate, video.Output.Audio.Encoder.MinBitrate*mult)
-
-	return AudioBitrate
-}
-
-func CalcOverhead(FPS float64, duration float64) float64 {
-	// muxers seem to use around 300 bits per frame plus 500 bits per second, MKV/WebM is a little less but why risk it
-	// calculation credit: RootAtKali
+func CalcOverhead(video *settings.Vid) *settings.Vid {
+	// thanks RootAtKali, calculations taken from discordify.sh
 	var overhead float64
-	const constantOverhead = 656.25
-	const timeOverhead = 0.5
-	const frameOverhead = 0.3
+	var header float64
+	var frameOverhead float64
+	var timeOverhead float64
+	var marginBase float64
+	switch utils.GetArg(video.Output.Encoder.Args, "-c:v") {
+	case "libx264":
+		header = 12000
+		frameOverhead = 250
+		timeOverhead = 2100
+		marginBase = 640000
+	case "libvpx-vp9":
+		header = 9152
+		frameOverhead = 60
+		timeOverhead = 2680
+		marginBase = 160000
+	case "libaom-av1":
+		header = 9152
+		frameOverhead = 56
+		timeOverhead = 2704
+		marginBase = 320000
+	default:
+		log.Println("Encoder not recognized, overhead estimation may not be accurate")
+		header = 12000
+		frameOverhead = 178
+		timeOverhead = 2704
+		marginBase = 640000
+	}
 
-	overhead += constantOverhead / duration
-	overhead += timeOverhead
-	overhead += frameOverhead * FPS
+	extraMargin := marginBase / math.Sqrt(video.Time.Duration)
 
-	return overhead
+	overhead += header
+	overhead += timeOverhead * video.Time.Duration
+	overhead += frameOverhead * math.Min(float64(video.Input.FPS.N)/float64(video.Input.FPS.D), float64(video.Output.Settings.MaxFPS))
+	overhead += extraMargin
+	overhead /= video.Time.Duration
+
+	video.Output.Bitrate.Total -= int(overhead)
+	return video
 }
 
-func CalcH264Overhead(duration float64) float64 {
-	return 640000 / math.Sqrt(duration)
+func CalcAudioBitrate(video *settings.Vid) *settings.Vid {
+	// thanks RootAtKali, calculations taken from discordify.sh
+	abr := int((318000 / (1 + math.Exp(-0.0000014*float64(video.Output.Bitrate.Total)))) - 134000)
+	mult := video.Output.AEncoder.BMult
+	if video.Input.AChannels == 1 {
+		mult *= 0.5 // halve audio bitrate if mono
+	}
+
+	video.Output.Bitrate.Audio = int(float64(abr) * mult)
+	// cap audio bitrate, spaghetti
+	video.Output.Bitrate.Audio = int(math.Min(math.Max(float64(video.Output.Bitrate.Audio), float64(video.Output.AEncoder.BMax*1024)), float64(video.Output.AEncoder.BMin*1024)))
+	video.Output.Bitrate.Video = video.Output.Bitrate.Total - abr
+	return video
 }

@@ -14,9 +14,7 @@ var fileStorage *fileformat
 func initStorage() {
 	fileStorage = &fileformat{
 		General:  General,
-		Decoding: Decoding,
 		Encoding: Encoding,
-		Advanced: Advanced,
 	}
 }
 
@@ -33,7 +31,6 @@ func LoadSettings(version string) bool {
 	defer file.Close()
 
 	if os.IsNotExist(err) {
-		populateSettings()
 		saveSettings(fileName, fileStorage)
 		return true
 	} else if err != nil {
