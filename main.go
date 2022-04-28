@@ -64,6 +64,7 @@ func init() {
 	forceAEncode := flag.String("c:a", "", "Uses a specific audio encoder")
 	forceContaine := flag.String("f", "", "Uses a specific container") // don't mind the cut off letters thanks
 	mixAudio := flag.Bool("mixaudio", false, "Mix together all audio tracks")
+	normAudio := flag.Bool("normaudio", false, "Normalize the audio volume")
 	flag.Parse()
 	// Settings loading
 	// Forcing
@@ -78,6 +79,7 @@ func init() {
 	customOutputFile = *customOutput
 	settings.Debug = *debug
 	settings.MixAudio = *mixAudio
+	settings.NormAudio = *normAudio
 
 	// Load defaults
 	if *targetSizeMB == float64(-1) {

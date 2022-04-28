@@ -2,6 +2,7 @@ package settings
 
 var Debug bool
 var MixAudio bool
+var NormAudio bool
 
 type fileformat struct {
 	General  *general

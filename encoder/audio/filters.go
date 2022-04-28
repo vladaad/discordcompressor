@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-// dynaudnorm=g=5:f=300:p=0.99
-
 func getFilters(video *settings.Vid) (filter string, mapping string) {
 	var filters []string
 	var inputs []string
@@ -28,6 +26,16 @@ func getFilters(video *settings.Vid) (filter string, mapping string) {
 		filter = append(filter, "[mixed]")
 		filters = append(filters, strings.Join(filter, ""))
 		inputs = []string{"[mixed]"}
+		mapping = inputs[0]
+	}
+	// Audio normalization
+	if settings.NormAudio {
+		var filter []string
+		filter = append(filter, inputs...)
+		filter = append(filter, "dynaudnorm=g=5:f=300:p=0.99")
+		filter = append(filter, "[norm]")
+		filters = append(filters, strings.Join(filter, ""))
+		inputs = []string{"[norm]"}
 		mapping = inputs[0]
 	}
 
