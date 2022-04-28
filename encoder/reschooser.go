@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 )
 
 func CalculateResolution(video *settings.Vid) *settings.Vid {
@@ -68,7 +69,7 @@ func CalculateResolution(video *settings.Vid) *settings.Vid {
 	tempFilename := video.UUID + ".resa.mkv"
 
 	// fps
-	video = calculateFPS(video)
+	video.Output.FPS = calculateFPS(video)
 	fpsf := fpsFilter(video)
 
 	// ffmpeg options
@@ -78,12 +79,14 @@ func CalculateResolution(video *settings.Vid) *settings.Vid {
 	options = append(options, "-map", "0:v:0")
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
-	options = append(options, "-vf", "scale=-2:"+strconv.FormatFloat(testRes, 'f', 0, 64)+":flags=fast_bilinear")
 
-	if fpsf != nil {
-		options = append(options, fpsf...)
+	var filters []string
+	filters = append(filters, "scale=-2:"+strconv.FormatFloat(testRes, 'f', 0, 64)+":flags=fast_bilinear")
+	if fpsf != "" {
+		filters = append(filters, fpsf)
 	}
 
+	options = append(options, "-vf", strings.Join(filters, ","))
 	options = append(options, "-c:v", "libx264", "-preset", "veryfast", "-crf", "26")
 	options = append(options, "-g", keyint(video))
 	options = append(options, "-pix_fmt", "yuv420p", tempFilename)

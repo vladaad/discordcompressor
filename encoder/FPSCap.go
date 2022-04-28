@@ -5,34 +5,37 @@ import (
 	"strconv"
 )
 
-func calculateFPS(video *settings.Vid) *settings.Vid {
-	video.Output.FPS = video.Input.FPS
+func calculateFPS(video *settings.Vid) *settings.FPS {
+	divided := 1
+	fps := new(settings.FPS)
+	fps.D, fps.N = video.Input.FPS.D, video.Input.FPS.N
 	for {
-		if float64(video.Output.FPS.N)/float64(video.Output.FPS.D) > float64(video.Output.Settings.MaxFPS) {
+		if float64(fps.N)/float64(fps.D) > float64(video.Output.Settings.MaxFPS) {
 			if settings.Encoding.HalveFPS {
-				video.Output.FPS.D *= 2
+				fps.D *= 2
+				divided *= 2
 			} else {
-				video.Output.FPS.N = video.Output.Settings.MaxFPS
-				video.Output.FPS.D = 1
+				fps.N = video.Output.Settings.MaxFPS
+				fps.D = 1
 				break
 			}
 		} else {
 			break
 		}
 	}
-	return video
+	return fps
 }
 
-func fpsFilter(video *settings.Vid) []string {
+func fpsFilter(video *settings.Vid) string {
 	fps := video.Output.FPS
 	if video.Input.FPS != video.Output.FPS {
-		var str []string
+		var str string
 		expr := strconv.Itoa(fps.N)
 		expr += "/"
 		expr += strconv.Itoa(fps.D)
-		str = append(str, "-r", expr)
+		str = "fps=" + expr
 		return str
 	} else {
-		return nil
+		return ""
 	}
 }

@@ -4,12 +4,13 @@ var Encoding = initEncoding()
 
 func initEncoding() *encoding {
 	return &encoding{
-		MaxBitrate: 15000,
-		FastMode:   false,
-		AutoRes:    true,
-		AutoResCap: 1080,
-		HalveFPS:   true,
-		Scaler:     "bicubic",
+		MaxBitrate:  15000,
+		FastMode:    false,
+		AutoRes:     true,
+		AutoResCap:  1080,
+		HalveFPS:    true,
+		VariableFPS: false,
+		Scaler:      "bicubic",
 		Encoders: []*Encoder{
 			{
 				Name:   "fast",
@@ -114,15 +115,16 @@ func initEncoding() *encoding {
 }
 
 type encoding struct {
-	MaxBitrate int
-	FastMode   bool
-	AutoRes    bool
-	AutoResCap int
-	HalveFPS   bool
-	Scaler     string
-	Encoders   []*Encoder
-	AEncoders  []*AudioEncoder
-	Limits     []*Limit
+	MaxBitrate  int
+	FastMode    bool
+	AutoRes     bool
+	AutoResCap  int
+	HalveFPS    bool
+	VariableFPS bool
+	Scaler      string
+	Encoders    []*Encoder
+	AEncoders   []*AudioEncoder
+	Limits      []*Limit
 }
 
 type Encoder struct {

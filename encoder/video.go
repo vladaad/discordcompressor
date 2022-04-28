@@ -26,6 +26,14 @@ func EncodeVideo(video *settings.Vid, pass int) {
 
 	// Filtering
 	var filters []string
+	// FPS
+	video.Output.FPS = calculateFPS(video)
+	if video.Output.FPS != video.Input.FPS {
+		f := fpsFilter(video)
+		if f != "" {
+			filters = append(filters, f)
+		}
+	}
 	// Resolution
 	if video.Output.Settings.MaxVRes < video.Input.Height {
 		scaler := settings.Encoding.Scaler
@@ -38,17 +46,14 @@ func EncodeVideo(video *settings.Vid, pass int) {
 		filter += ":flags=" + scaler
 		filters = append(filters, filter)
 	}
+	// VFR
+	if settings.Encoding.VariableFPS {
+		filters = append(filters, "mpdecimate=max=2")
+	}
+	// Combining
 	if filters != nil {
 		combined := strings.Join(filters, ",")
 		options = append(options, "-vf", combined)
-	}
-	// FPS
-	video = calculateFPS(video)
-	if video.Output.FPS != video.Input.FPS {
-		options = append(options, fpsFilter(video)...)
-		options = append(options, "-vsync", "cfr")
-	} else {
-		options = append(options, "-vsync", "vfr")
 	}
 
 	// Encoding
@@ -68,10 +73,11 @@ func EncodeVideo(video *settings.Vid, pass int) {
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
 
-	// Faststart for MP4
+	// Faststart for MP4, VFR
 	if strings.ToLower(video.Output.Settings.Container) == "mp4" {
 		options = append(options, "-movflags", "+faststart")
 	}
+	options = append(options, "-vsync", "vfr")
 
 	// Output
 

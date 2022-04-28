@@ -52,7 +52,7 @@ func CalcOverhead(video *settings.Vid) *settings.Vid {
 
 func CalcAudioBitrate(video *settings.Vid) *settings.Vid {
 	// thanks RootAtKali, calculations taken from discordify.sh
-	abr := int((318000 / (1 + math.Exp(-0.0000014*float64(video.Output.Bitrate.Total)))) - 134000)
+	abr := int((318000 / (1 + math.Exp(-0.0000014*float64(video.Output.Bitrate.Total)))) - 154000)
 	mult := video.Output.AEncoder.BMult
 	if video.Input.AChannels == 1 {
 		mult *= 0.5 // halve audio bitrate if mono
