@@ -14,12 +14,14 @@ func CalcOverhead(video *settings.Vid) *settings.Vid {
 	var frameOverhead float64
 	var timeOverhead float64
 	var marginBase float64
+	mult := 1.0
 	switch utils.GetArg(video.Output.Encoder.Args, "-c:v") {
 	case "libx264":
-		header = 12000
-		frameOverhead = 250
-		timeOverhead = 2100
-		marginBase = 640000
+		header = 15000
+		frameOverhead = 300
+		timeOverhead = 2700
+		marginBase = 720000
+		mult = 0.99 // x264 is so inaccurate in my testing this is needed for many types of footage
 	case "libvpx-vp9":
 		header = 9152
 		frameOverhead = 60
@@ -47,6 +49,7 @@ func CalcOverhead(video *settings.Vid) *settings.Vid {
 	overhead /= video.Time.Duration
 
 	video.Output.Bitrate.Total -= int(overhead)
+	video.Output.Bitrate.Total = int(float64(video.Output.Bitrate.Total) * mult)
 	return video
 }
 

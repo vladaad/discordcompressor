@@ -77,6 +77,9 @@ func EncodeVideo(video *settings.Vid, pass int) {
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
 
+	// Add own metadata
+	options = append(options, metadata.AddOutputMetadata(video)...)
+
 	// Faststart for MP4, VFR
 	if strings.ToLower(video.Output.Settings.Container) == "mp4" {
 		options = append(options, "-movflags", "+faststart")
