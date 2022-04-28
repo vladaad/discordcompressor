@@ -60,7 +60,8 @@ func CalcAudioBitrate(video *settings.Vid) *settings.Vid {
 
 	video.Output.Bitrate.Audio = int(float64(abr) * mult)
 	// cap audio bitrate, spaghetti
-	video.Output.Bitrate.Audio = int(math.Min(math.Max(float64(video.Output.Bitrate.Audio), float64(video.Output.AEncoder.BMax*1024)), float64(video.Output.AEncoder.BMin*1024)))
+	log.Println(video.Output.Bitrate.Audio, video.Output.AEncoder.BMax, video.Output.AEncoder.BMin)
+	video.Output.Bitrate.Audio = int(math.Max(math.Min(float64(video.Output.Bitrate.Audio), float64(video.Output.AEncoder.BMax*1024)), float64(video.Output.AEncoder.BMin*1024)))
 	video.Output.Bitrate.Video = video.Output.Bitrate.Total - abr
 	return video
 }
