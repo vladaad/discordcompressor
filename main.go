@@ -63,6 +63,7 @@ func init() {
 	forceEncode := flag.String("c:v", "", "Uses a specific encoder")
 	forceAEncode := flag.String("c:a", "", "Uses a specific audio encoder")
 	forceContaine := flag.String("f", "", "Uses a specific container") // don't mind the cut off letters thanks
+	mixAudio := flag.Bool("mixaudio", false, "Mix together all audio tracks")
 	flag.Parse()
 	// Settings loading
 	// Forcing
@@ -76,6 +77,7 @@ func init() {
 	lastSeconds = *lastXSeconds
 	customOutputFile = *customOutput
 	settings.Debug = *debug
+	settings.MixAudio = *mixAudio
 
 	// Load defaults
 	if *targetSizeMB == float64(-1) {

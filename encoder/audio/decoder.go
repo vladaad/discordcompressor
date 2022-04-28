@@ -16,9 +16,15 @@ func decodeAudio(video *settings.Vid) io.ReadCloser {
 	options = append(options, metadata.AppendTimes(video)...)
 	options = append(options, "-i", video.InFile)
 
-	options = append(options, "-map", "0:a:0")
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
+
+	// filters
+	filters, mapping := getFilters(video)
+	if filters != "" {
+		options = append(options, "-filter_complex", filters)
+	}
+	options = append(options, "-map", mapping)
 
 	// output format
 	options = append(options, "-c:a", "pcm_s32le")
