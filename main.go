@@ -66,7 +66,11 @@ func init() {
 	mixAudio := flag.Bool("mixaudio", false, "Mix together all audio tracks")
 	normAudio := flag.Bool("normaudio", false, "Normalize the audio volume")
 	flag.Parse()
-	// Settings loading
+
+	if len(flag.Args()) == 0 {
+		log.Println("No input file specified")
+		os.Exit(0)
+	}
 	// Forcing
 	forceEncoder = *forceEncode
 	forceAEncoder = *forceAEncode
@@ -87,12 +91,8 @@ func init() {
 	}
 	targetSize = int(*targetSizeMB * 8388608) // 1024*1024*8 - in bits
 
+	// Settings loading
 	settings.LoadSettings(*settingsFile)
-
-	if len(input) == 0 {
-		log.Println("No input video specified, closing...")
-		os.Exit(0)
-	}
 }
 
 func main() {

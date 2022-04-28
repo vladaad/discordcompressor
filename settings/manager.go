@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/vladaad/discordcompressor/utils"
+	"io/ioutil"
+	"log"
 	"os"
+	"strings"
 )
 
 // Stolen from https://github.com/Wieku/danser-go/app/settings
@@ -26,6 +29,9 @@ func LoadSettings(version string) bool {
 		fileName += "-" + version
 	}
 	fileName += ".json"
+	if detectOldSettings(fileName) {
+		log.Println("Old settings were backed up and new settings were created!")
+	}
 
 	file, err := os.Open(fileName)
 	defer file.Close()
@@ -65,4 +71,19 @@ func saveSettings(path string, source interface{}) {
 	if err := file.Close(); err != nil {
 		panic(err)
 	}
+}
+
+func detectOldSettings(path string) bool {
+	f, err := ioutil.ReadFile(path)
+	if err != nil {
+		return false
+	}
+	if strings.Contains(string(f), "BitrateTargets") {
+		err = os.Rename(path, path+".old")
+		if err != nil {
+			panic(err)
+		}
+		return true
+	}
+	return false
 }
