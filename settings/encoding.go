@@ -7,6 +7,7 @@ func initEncoding() *encoding {
 		MaxBitrate: 15000,
 		FastMode:   false,
 		AutoRes:    true,
+		AutoResCap: 1080,
 		HalveFPS:   true,
 		Scaler:     "bicubic",
 		Encoders: []*Encoder{
@@ -116,6 +117,7 @@ type encoding struct {
 	MaxBitrate int
 	FastMode   bool
 	AutoRes    bool
+	AutoResCap int
 	HalveFPS   bool
 	Scaler     string
 	Encoders   []*Encoder

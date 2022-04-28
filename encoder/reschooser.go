@@ -84,7 +84,7 @@ func CalculateResolution(video *settings.Vid) *settings.Vid {
 		options = append(options, fpsf...)
 	}
 
-	options = append(options, "-c:v", "libx264", "-preset", "veryfast", "-crf", "28")
+	options = append(options, "-c:v", "libx264", "-preset", "veryfast", "-crf", "26")
 	options = append(options, "-g", keyint(video))
 	options = append(options, "-pix_fmt", "yuv420p", tempFilename)
 
@@ -127,7 +127,7 @@ func CalculateResolution(video *settings.Vid) *settings.Vid {
 			}
 		}
 	}
-	video.Output.Settings.MaxVRes = finalHeight
+	video.Output.Settings.MaxVRes = int(math.Min(float64(finalHeight), float64(settings.Encoding.AutoResCap)))
 
 	os.Remove(tempFilename)
 
