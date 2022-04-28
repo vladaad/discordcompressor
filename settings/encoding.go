@@ -86,7 +86,7 @@ func initEncoding() *encoding {
 				MaxFPS:     60,
 			},
 			{
-				Encoder:    "slow",
+				Encoder:    "normal",
 				AEncoder:   "aac",
 				Container:  "mp4",
 				MinBitrate: 1500,
