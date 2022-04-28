@@ -10,6 +10,8 @@ func initEncoding() *encoding {
 		AutoResCap:  1080,
 		HalveFPS:    true,
 		VariableFPS: false,
+		Passthrough: true,
+		ForceGetABR: true,
 		Scaler:      "bicubic",
 		Encoders: []*Encoder{
 			{
@@ -122,6 +124,8 @@ type encoding struct {
 	HalveFPS    bool
 	VariableFPS bool
 	Scaler      string
+	Passthrough bool
+	ForceGetABR bool
 	Encoders    []*Encoder
 	AEncoders   []*AudioEncoder
 	Limits      []*Limit

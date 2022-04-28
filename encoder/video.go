@@ -70,6 +70,10 @@ func EncodeVideo(video *settings.Vid, pass int) {
 		options = append(options, "-map", "1:a:0")
 		options = append(options, "-c:a", "copy")
 	}
+	if video.Output.APassthrough && pass == 2 {
+		options = append(options, "-map", "0:a:0")
+		options = append(options, "-c:a", "copy")
+	}
 	options = append(options, "-map_metadata", "-1")
 	options = append(options, "-map_chapters", "-1")
 

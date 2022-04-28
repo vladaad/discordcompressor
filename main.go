@@ -125,19 +125,24 @@ func compress(inVideo string) bool {
 	video = metadata.SelectEncoder(video)
 	video = metadata.CalcOverhead(video)
 
-	// Audio bitrate calculation
+	// Audio bitrate calculation and encoding
 	if video.Input.ATracks > 0 {
 		video = metadata.CalcAudioBitrate(video)
-		video.Output.AudioFile = audio.GenFilename(video)
-		wg.Add(1)
-		if settings.Encoding.FastMode {
-			go audio.EncodeAudio(video, &wg)
+	}
+	video = metadata.PassthroughCheck(video)
+	if !video.Output.APassthrough {
+		if video.Input.ATracks > 0 {
+			video.Output.AudioFile = audio.GenFilename(video)
+			wg.Add(1)
+			if settings.Encoding.FastMode {
+				go audio.EncodeAudio(video, &wg)
+			} else {
+				log.Println("Encoding audio...")
+				audio.EncodeAudio(video, &wg)
+			}
 		} else {
-			log.Println("Encoding audio...")
-			audio.EncodeAudio(video, &wg)
+			video.Output.Bitrate.Video = video.Output.Bitrate.Total
 		}
-	} else {
-		video.Output.Bitrate.Video = video.Output.Bitrate.Total
 	}
 
 	if settings.Debug {

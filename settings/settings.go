@@ -19,13 +19,14 @@ type Vid struct {
 }
 
 type Out struct {
-	FPS       *FPS
-	Force     *Force
-	Encoder   *Encoder
-	AEncoder  *AudioEncoder
-	Settings  *Limit
-	Bitrate   *Bitrates
-	AudioFile string
+	FPS          *FPS
+	Force        *Force
+	Encoder      *Encoder
+	AEncoder     *AudioEncoder
+	Settings     *Limit
+	Bitrate      *Bitrates
+	AudioFile    string
+	APassthrough bool
 }
 
 type Time struct {
