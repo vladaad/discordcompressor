@@ -34,6 +34,10 @@ func EncodeVideo(video *settings.Vid, pass int) {
 			filters = append(filters, f)
 		}
 	}
+	// VFR
+	if settings.Encoding.VariableFPS {
+		filters = append(filters, "mpdecimate=max=2")
+	}
 	// Resolution
 	if video.Output.Settings.MaxVRes < video.Input.Height {
 		scaler := settings.Encoding.Scaler
@@ -45,10 +49,6 @@ func EncodeVideo(video *settings.Vid, pass int) {
 		filter += strconv.Itoa(video.Output.Settings.MaxVRes)
 		filter += ":flags=" + scaler
 		filters = append(filters, filter)
-	}
-	// VFR
-	if settings.Encoding.VariableFPS {
-		filters = append(filters, "mpdecimate=max=2")
 	}
 	// Combining
 	if filters != nil {
@@ -85,6 +85,11 @@ func EncodeVideo(video *settings.Vid, pass int) {
 		options = append(options, "-movflags", "+faststart")
 	}
 	options = append(options, "-vsync", "vfr")
+
+	// WebM H264 trick
+	if video.Output.Settings.Container == "webm" {
+		options = append(options, "-f", "matroska")
+	}
 
 	// Output
 

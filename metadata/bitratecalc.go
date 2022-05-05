@@ -21,7 +21,7 @@ func CalcOverhead(video *settings.Vid) *settings.Vid {
 		frameOverhead = 300
 		timeOverhead = 2700
 		marginBase = 720000
-		mult = 0.99 // x264 is so inaccurate in my testing this is needed for many types of footage
+		mult = 0.98 // x264 is so inaccurate in my testing this is needed for many types of footage
 	case "libvpx-vp9":
 		header = 9152
 		frameOverhead = 60
