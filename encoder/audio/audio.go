@@ -23,6 +23,8 @@ func EncodeAudio(video *settings.Vid, wg *sync.WaitGroup) *settings.Vid {
 	switch video.Output.AEncoder.Type {
 	case "ffmpeg":
 		encFFmpeg(video, dec)
+	case "fdkaac":
+		encFDK(video, dec)
 	}
 
 	if !settings.Encoding.FastMode {
