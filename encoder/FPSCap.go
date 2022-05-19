@@ -10,7 +10,7 @@ func calculateFPS(video *settings.Vid) *settings.FPS {
 	fps := new(settings.FPS)
 	fps.D, fps.N = video.Input.FPS.D, video.Input.FPS.N
 	for {
-		if float64(fps.N)/float64(fps.D) > float64(video.Output.Settings.MaxFPS) {
+		if float64(fps.N)/float64(fps.D) > float64(video.Output.Settings.MaxFPS)+1 { // allow for leniency
 			if settings.Encoding.HalveFPS {
 				fps.D *= 2
 				divided *= 2

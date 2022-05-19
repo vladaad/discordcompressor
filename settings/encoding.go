@@ -101,8 +101,8 @@ func initEncoding() *encoding {
 				AEncoder:   "aac",
 				Container:  "mp4",
 				MinBitrate: 800,
-				MaxVRes:    720,
-				MaxFPS:     30,
+				MaxVRes:    540,
+				MaxFPS:     60,
 			},
 			{
 				Encoder:    "ultra",
