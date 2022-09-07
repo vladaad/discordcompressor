@@ -2,14 +2,15 @@ package utils
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/vladaad/discordcompressor/build"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/vladaad/discordcompressor/build"
 )
 
 func OpenURL(url string) {
@@ -80,12 +81,15 @@ func SettingsDir() string {
 	}
 }
 
-func CheckIfPresent(filename string) bool {
-	_, err := exec.Command(filename).Output()
-	return !strings.Contains(err.Error(), "executable file not found")
+func CommandOutput(cmd string, args []string) string {
+	out, err := exec.Command(cmd, args...).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(out)
 }
 
-func CommandOutput(filename string, args []string) string {
-	out, _ := exec.Command(filename, args...).Output()
-	return string(out)
+func CommandExists(cmd string) bool {
+	_, err := exec.LookPath(cmd)
+	return err == nil
 }

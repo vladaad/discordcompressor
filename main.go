@@ -2,13 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/vladaad/discordcompressor/build"
-	"github.com/vladaad/discordcompressor/encoder/audio"
-	"github.com/vladaad/discordcompressor/encoder/video"
-	"github.com/vladaad/discordcompressor/metadata"
-	"github.com/vladaad/discordcompressor/settings"
-	"github.com/vladaad/discordcompressor/subtitles"
-	"github.com/vladaad/discordcompressor/utils"
 	"io"
 	"log"
 	"math"
@@ -19,6 +12,14 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/vladaad/discordcompressor/build"
+	"github.com/vladaad/discordcompressor/encoder/audio"
+	vidEnc "github.com/vladaad/discordcompressor/encoder/video"
+	"github.com/vladaad/discordcompressor/metadata"
+	"github.com/vladaad/discordcompressor/settings"
+	"github.com/vladaad/discordcompressor/subtitles"
+	"github.com/vladaad/discordcompressor/utils"
 )
 
 var reEncV bool
@@ -356,7 +357,7 @@ func checkForFF() {
 	check := []string{"ffmpeg", "ffprobe"}
 
 	for i := range check {
-		if !utils.CheckIfPresent(check[i]) {
+		if !utils.CommandExists(check[i]) {
 			message := check[i] + " not installed or not added to PATH"
 			if runtime.GOOS == "windows" {
 				message = message + ", you can download it here: https://github.com/BtbN/FFmpeg-Builds/releases"
