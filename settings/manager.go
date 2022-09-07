@@ -2,9 +2,12 @@ package settings
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/vladaad/discordcompressor/utils"
+	"io/fs"
 	"os"
+
+	"github.com/vladaad/discordcompressor/utils"
 )
 
 // Stolen from https://github.com/Wieku/danser-go/app/settings
@@ -30,9 +33,8 @@ func LoadSettings(version string) bool {
 	fileName += ".json"
 
 	file, err := os.Open(fileName)
-	defer file.Close()
 
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		populateSettings()
 		saveSettings(fileName, fileStorage)
 		return true
@@ -42,6 +44,8 @@ func LoadSettings(version string) bool {
 		load(file, fileStorage)
 		saveSettings(fileName, fileStorage) //this is done to save additions from the current format
 	}
+
+	defer file.Close()
 	return false
 }
 

@@ -1,13 +1,14 @@
 package settings
 
 import (
-	"github.com/vladaad/discordcompressor/utils"
 	"log"
 	"math"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/vladaad/discordcompressor/utils"
 )
 
 func populateSettings() {
@@ -17,7 +18,7 @@ func populateSettings() {
 
 func generateAudioEncoder() *AudioEncoder {
 	var encoder *AudioEncoder
-	if utils.CheckIfPresent("qaac64") {
+	if utils.CommandExists("qaac64") {
 		encoder = &AudioEncoder{
 			Name:        "aac",
 			Type:        "qaac",
@@ -41,7 +42,7 @@ func generateAudioEncoder() *AudioEncoder {
 			MinBitrate:  96,
 			BitratePerc: 10,
 		}
-	} else if utils.CheckIfPresent("fdkaac") {
+	} else if utils.CommandExists("fdkaac") {
 		encoder = &AudioEncoder{
 			Name:        "aac",
 			Type:        "fdkaac",
@@ -133,9 +134,9 @@ func benchmarkx264() float64 {
 	)
 
 	start := time.Now()
-	err := cmd.Start()
+	cmd.Start()
 
-	err = cmd.Wait()
+	err := cmd.Wait()
 	elapsed := time.Since(start)
 
 	if err != nil {
