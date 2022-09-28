@@ -10,6 +10,7 @@ func initGeneral() *general {
 		FFprobeExecutable: "ffprobe",
 		QaacExecutable:    "qaac64",
 		FDKaacExecutable:  "fdkaac",
+		FHGaacExecutable:  "fhgaacenc",
 		OutputSuffix:      "-%smb",
 	}
 }
@@ -21,5 +22,6 @@ type general struct {
 	FFprobeExecutable string
 	QaacExecutable    string
 	FDKaacExecutable  string
+	FHGaacExecutable  string
 	OutputSuffix      string
 }

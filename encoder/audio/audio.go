@@ -12,7 +12,7 @@ func GenFilename(video *settings.Vid) string {
 	switch video.Output.AEncoder.Type {
 	case "ffmpeg":
 		filename += video.Output.Settings.Container
-	case "qaac", "fdkaac":
+	case "qaac", "fdkaac", "fhgaac":
 		filename += "m4a"
 	}
 	return filename
@@ -25,6 +25,8 @@ func EncodeAudio(video *settings.Vid, wg *sync.WaitGroup) *settings.Vid {
 		encFFmpeg(video, dec)
 	case "fdkaac":
 		encFDK(video, dec)
+	case "fhgaac":
+		encFHG(video, dec)
 	}
 
 	if !settings.Encoding.FastMode {
