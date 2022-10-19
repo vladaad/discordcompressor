@@ -80,6 +80,7 @@ func CalculateResolution(video *settings.Vid) *settings.Vid {
 	// ffmpeg options
 	options = append(options, "-loglevel", "warning", "-stats")
 	options = append(options, metadata.AppendTimes(video)...)
+	options = append(options, "-hwaccel", settings.General.Hwaccel)
 	options = append(options, "-i", video.InFile)
 	options = append(options, "-map", "0:v:0")
 	options = append(options, "-map_metadata", "-1")

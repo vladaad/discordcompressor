@@ -18,6 +18,7 @@ func EncodeVideo(video *settings.Vid, pass int) {
 
 	// Input
 	options = append(options, metadata.AppendTimes(video)...)
+	options = append(options, "-hwaccel", settings.General.Hwaccel)
 	options = append(options, "-y", "-i")
 	options = append(options, video.InFile)
 
