@@ -1,5 +1,7 @@
 package settings
 
+import "github.com/vladaad/discordcompressor/scaler"
+
 var Encoding = initEncoding()
 
 func initEncoding() *encoding {
@@ -12,7 +14,7 @@ func initEncoding() *encoding {
 		VariableFPS: false,
 		Passthrough: true,
 		ForceGetABR: true,
-		Scaler:      "bicubic",
+		Scaler:      genScaler(),
 		Encoders: []*Encoder{
 			{
 				Name:   "fast",
@@ -113,6 +115,14 @@ func initEncoding() *encoding {
 				MaxFPS:     30,
 			},
 		},
+	}
+}
+
+func genScaler() string {
+	if scaler.CudaCheck() == nil {
+		return "cuda"
+	} else {
+		return "bicubic"
 	}
 }
 
