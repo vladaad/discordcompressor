@@ -2,6 +2,7 @@ package encoder
 
 import (
 	"github.com/vladaad/discordcompressor/metadata"
+	"github.com/vladaad/discordcompressor/scaler"
 	"github.com/vladaad/discordcompressor/settings"
 	"github.com/vladaad/discordcompressor/utils"
 	"log"
@@ -18,6 +19,10 @@ func CalculateResolution(video *settings.Vid) *settings.Vid {
 	var options []string
 	var bdrate int
 	testRes := math.Min(float64(video.Input.Height), 720)
+	scalefilter := "fast_bilinear"
+	if settings.Encoding.Scaler == "cuda" {
+		scalefilter = "cuda"
+	}
 	// bdrate selection depending on encoder
 	switch utils.GetArg(video.Output.Encoder.Args, "-c:v") {
 	case "libx264":
@@ -81,7 +86,7 @@ func CalculateResolution(video *settings.Vid) *settings.Vid {
 	options = append(options, "-map_chapters", "-1")
 
 	var filters []string
-	filters = append(filters, "scale=-2:"+strconv.FormatFloat(testRes, 'f', 0, 64)+":flags=fast_bilinear")
+	filters = append(filters, scaler.GenerateFilter(video, -2, int(testRes), "yuv420p", scalefilter))
 	if fpsf != "" {
 		filters = append(filters, fpsf)
 	}
@@ -89,7 +94,7 @@ func CalculateResolution(video *settings.Vid) *settings.Vid {
 	options = append(options, "-vf", strings.Join(filters, ","))
 	options = append(options, "-c:v", "libx264", "-preset", "veryfast", "-crf", "26")
 	options = append(options, "-g", keyint(video))
-	options = append(options, "-pix_fmt", "yuv420p", tempFilename)
+	options = append(options, tempFilename)
 
 	// encode
 	cmd := exec.Command(settings.General.FFmpegExecutable, options...)
