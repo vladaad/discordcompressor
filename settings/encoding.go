@@ -1,6 +1,8 @@
 package settings
 
-import "github.com/vladaad/discordcompressor/scaler"
+import (
+	"github.com/vladaad/discordcompressor/hardware"
+)
 
 var Encoding = initEncoding()
 
@@ -119,7 +121,7 @@ func initEncoding() *encoding {
 }
 
 func genScaler() string {
-	if scaler.CudaCheck() == nil {
+	if hardware.CudaCheck("ffmpeg") == nil {
 		return "cuda"
 	} else {
 		return "bicubic"

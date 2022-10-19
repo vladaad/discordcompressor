@@ -2,6 +2,7 @@ package encoder
 
 import (
 	"github.com/vladaad/discordcompressor/metadata"
+	"github.com/vladaad/discordcompressor/scaler"
 	"github.com/vladaad/discordcompressor/settings"
 	"log"
 	"os"
@@ -39,7 +40,7 @@ func EncodeVideo(video *settings.Vid, pass int) {
 		filters = append(filters, "mpdecimate=max=2")
 	}
 	// Resolution
-	if video.Output.Settings.MaxVRes < video.Input.Height {
+	/*	if video.Output.Settings.MaxVRes < video.Input.Height {
 		scaler := settings.Encoding.Scaler
 		if pass == 1 {
 			scaler = "fast_bilinear"
@@ -49,6 +50,15 @@ func EncodeVideo(video *settings.Vid, pass int) {
 		filter += strconv.Itoa(video.Output.Settings.MaxVRes)
 		filter += ":flags=" + scaler
 		filters = append(filters, filter)
+	}*/
+	scaled := false
+	if video.Output.Settings.MaxVRes < video.Input.Height {
+		scaled = true
+		scalefilter := settings.Encoding.Scaler
+		if pass == 1 && scalefilter != "cuda" {
+			scalefilter = "fast_bilinear"
+		}
+		filters = append(filters, scaler.GenerateFilter(video, -2, video.Output.Settings.MaxVRes, video.Output.Encoder.Pixfmt, scalefilter))
 	}
 	// Combining
 	if filters != nil {
@@ -58,7 +68,9 @@ func EncodeVideo(video *settings.Vid, pass int) {
 
 	// Encoding
 	options = append(options, EncoderOptions...)
-	options = append(options, "-pix_fmt", video.Output.Encoder.Pixfmt)
+	if !scaled {
+		options = append(options, "-pix_fmt", video.Output.Encoder.Pixfmt)
+	}
 	options = append(options, "-b:v", strconv.Itoa(video.Output.Bitrate.Video))
 
 	options = append(options, "-pass", strconv.Itoa(pass))
