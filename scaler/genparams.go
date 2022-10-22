@@ -16,19 +16,24 @@ func GenerateFilter(video *settings.Vid, targetWidth int, targetHeight int, targ
 		}
 	} else { //cuda
 		pixfmt := targetPixfmt
+		pixfmt_cuda := pixfmt
 		samePixfmt := false
 		if targetPixfmt == "" {
 			samePixfmt = true
 			pixfmt = video.Input.Pixfmt
+			pixfmt_cuda = pixfmt
+		}
+		if pixfmt_cuda == "yuv420p10le" {
+			pixfmt_cuda = "p010"
 		}
 
 		filter += "hwupload_cuda,"
 		filter += "scale_cuda=" + strconv.Itoa(targetWidth)
 		filter += ":" + strconv.Itoa(targetHeight)
 		if !samePixfmt {
-			filter += ":format=" + pixfmt
+			filter += ":format=" + pixfmt_cuda
 		}
-		filter += ",hwdownload,format=" + pixfmt //hwdownload always needs pixfmt
+		filter += ",hwdownload,format=" + pixfmt_cuda //hwdownload always needs pixfmt
 
 	}
 	return filter
