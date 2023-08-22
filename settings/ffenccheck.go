@@ -6,12 +6,23 @@ import (
 	"os/exec"
 )
 
-func CheckAEncoder(encoder string) bool {
+func CheckEncoder(encoder string, audio bool) bool {
 	var options []string
 
-	options = append(options, "-f", "lavfi", "-i", "anullsrc")
-	options = append(options, "-t", "10")
-	options = append(options, "-c:a", encoder)
+	if audio {
+		options = append(options, "-f", "lavfi", "-i", "anullsrc")
+	} else {
+		options = append(options, "-f", "lavfi", "-i", "nullsrc=1920x1080")
+	}
+
+	options = append(options, "-t", "1")
+
+	if audio {
+		options = append(options, "-c:a", encoder)
+	} else {
+		options = append(options, "-c:v", encoder)
+	}
+
 	options = append(options, "-f", "null", "-")
 
 	if Debug {
