@@ -4,7 +4,7 @@ var General = initGeneral()
 
 func initGeneral() *general {
 	return &general{
-		TargetSizeMB:      8,
+		TargetSizeMB:      25,
 		Hwaccel:           "auto",
 		FFmpegExecutable:  "ffmpeg",
 		FFprobeExecutable: "ffprobe",
