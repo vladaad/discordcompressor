@@ -125,6 +125,11 @@ func compress(inVideo string) bool {
 	video = metadata.SelectEncoder(video)
 	video = metadata.CalcOverhead(video)
 
+	// Force fast mode with 1-pass
+	if video.Output.Encoder.Passes == 1 {
+		settings.Encoding.FastMode = true
+	}
+
 	// Audio bitrate calculation and encoding
 	if video.Input.ATracks > 0 {
 		video = metadata.CalcAudioBitrate(video)
