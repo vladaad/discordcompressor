@@ -130,7 +130,7 @@ func compress(inVideo string) bool {
 		video = metadata.CalcAudioBitrate(video)
 	}
 	video = metadata.PassthroughCheck(video)
-	if !video.Output.APassthrough {
+	if !video.Output.APassthrough || forceAEncoder != "" {
 		if video.Input.ATracks > 0 {
 			video.Output.AudioFile = audio.GenFilename(video)
 			wg.Add(1)
@@ -144,7 +144,6 @@ func compress(inVideo string) bool {
 			video.Output.Bitrate.Video = video.Output.Bitrate.Total
 		}
 	}
-
 	if settings.Debug {
 		log.Println("Video bitrate:", video.Output.Bitrate.Video/1024)
 		log.Println("Audio bitrate:", video.Output.Bitrate.Audio/1024)
