@@ -37,6 +37,7 @@ func LoadSettings(version string) bool {
 	defer file.Close()
 
 	if os.IsNotExist(err) {
+		newSettings()
 		saveSettings(fileName, fileStorage)
 		return true
 	} else if err != nil {

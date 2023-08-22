@@ -48,24 +48,7 @@ func initEncoding() *encoding {
 			},
 		},
 		AEncoders: []*AudioEncoder{
-			{
-				Name:  "aac",
-				Type:  "ffmpeg",
-				BMult: 1.3,
-				BMax:  192,
-				BMin:  80,
-				TVBR:  false,
-				Args:  "-c:a aac -aac_coder twoloop",
-			},
-			{
-				Name:  "opus",
-				Type:  "ffmpeg",
-				BMult: 1,
-				BMax:  128,
-				BMin:  32,
-				TVBR:  false,
-				Args:  "-c:a libopus",
-			},
+			nil,
 		},
 		Limits: []*Limit{
 			{
