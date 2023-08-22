@@ -90,7 +90,7 @@ func EncodeVideo(video *settings.Vid, pass int) {
 	if strings.ToLower(video.Output.Settings.Container) == "mp4" {
 		options = append(options, "-movflags", "+faststart")
 	}
-	options = append(options, "-vsync", "vfr")
+	options = append(options, "-fps_mode", "vfr")
 
 	// WebM H264 trick
 	if video.Output.Settings.Container == "webm" {
