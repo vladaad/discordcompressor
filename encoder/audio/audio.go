@@ -27,6 +27,8 @@ func EncodeAudio(video *settings.Vid, wg *sync.WaitGroup) *settings.Vid {
 		encFDK(video, dec)
 	case "fhgaac":
 		encFHG(video, dec)
+	case "qaac":
+		encQaac(video, dec)
 	}
 
 	if !settings.Encoding.FastMode {

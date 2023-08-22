@@ -113,7 +113,18 @@ func genFastestEncoder() *Encoder {
 
 func genAACEncoder() *AudioEncoder {
 	var encoder *AudioEncoder
-	if utils.CheckIfPresent("fhgaacenc") {
+
+	if utils.CheckIfPresent("qaac64") {
+		encoder = &AudioEncoder{
+			Name:  "aac",
+			Type:  "qaac",
+			BMult: 1.2,
+			BMax:  144,
+			BMin:  72,
+			TVBR:  false,
+			Args:  "",
+		}
+	} else if utils.CheckIfPresent("fhgaacenc") {
 		encoder = &AudioEncoder{
 			Name:  "aac",
 			Type:  "fhgaac",
