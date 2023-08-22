@@ -26,6 +26,9 @@ func SettingsDir() string {
 
 func CheckIfPresent(filename string) bool {
 	_, err := exec.Command(filename).Output()
+	if err == nil {
+		return true
+	}
 	return !strings.Contains(err.Error(), "executable file not found")
 }
 
