@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-func CheckEncoder(encoder string, audio bool) bool {
+func checkEncoder(encoder string, audio bool) bool {
 	var options []string
 
 	if audio {

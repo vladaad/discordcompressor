@@ -18,34 +18,7 @@ func initEncoding() *encoding {
 		ForceGetABR: true,
 		Scaler:      genScaler(),
 		Encoders: []*Encoder{
-			{
-				Name:   "fast",
-				Passes: 2,
-				Keyint: 10,
-				Pixfmt: "yuv420p",
-				Args:   "-c:v libx264 -preset medium -aq-mode 3",
-			},
-			{
-				Name:   "normal",
-				Passes: 2,
-				Keyint: 10,
-				Pixfmt: "yuv420p",
-				Args:   "-c:v libx264 -preset slow -aq-mode 3",
-			},
-			{
-				Name:   "slow",
-				Passes: 2,
-				Keyint: 10,
-				Pixfmt: "yuv420p",
-				Args:   "-c:v libx264 -preset veryslow -aq-mode 3",
-			},
-			{
-				Name:   "ultra",
-				Passes: 2,
-				Keyint: 15,
-				Pixfmt: "yuv420p10le",
-				Args:   "-c:v libvpx-vp9 -lag-in-frames 25 -cpu-used 4 -auto-alt-ref 1 -arnr-maxframes 7 -arnr-strength 4 -aq-mode 0 -enable-tpl 1 -row-mt 1", // credit: BlueSwordM
-			},
+			nil,
 		},
 		AEncoders: []*AudioEncoder{
 			nil,
@@ -128,6 +101,7 @@ type encoding struct {
 
 type Encoder struct {
 	Name   string
+	BMult  float64
 	Passes int
 	Keyint int
 	Pixfmt string
