@@ -41,17 +41,7 @@ func EncodeVideo(video *settings.Vid, pass int) {
 		filters = append(filters, "mpdecimate=max=2")
 	}
 	// Resolution
-	/*	if video.Output.Settings.MaxVRes < video.Input.Height {
-		scaler := settings.Encoding.Scaler
-		if pass == 1 {
-			scaler = "fast_bilinear"
-		}
-		var filter string
-		filter += "scale=-2:"
-		filter += strconv.Itoa(video.Output.Settings.MaxVRes)
-		filter += ":flags=" + scaler
-		filters = append(filters, filter)
-	}*/
+
 	scaled := false
 	if video.Output.Settings.MaxVRes < video.Input.Height {
 		scaled = true
