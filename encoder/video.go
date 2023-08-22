@@ -22,7 +22,7 @@ func EncodeVideo(video *settings.Vid, pass int) {
 	options = append(options, "-y", "-i")
 	options = append(options, video.InFile)
 
-	if video.Output.AudioFile != "" && pass == 2 {
+	if video.Output.AudioFile != "" && pass != 1 {
 		options = append(options, "-i", video.Output.AudioFile)
 	}
 
@@ -64,16 +64,18 @@ func EncodeVideo(video *settings.Vid, pass int) {
 	}
 	options = append(options, "-b:v", strconv.Itoa(video.Output.Bitrate.Video))
 
-	options = append(options, "-pass", strconv.Itoa(pass))
-	options = append(options, "-passlogfile", video.UUID)
+	if video.Output.Encoder.Passes != 1 {
+		options = append(options, "-pass", strconv.Itoa(pass))
+		options = append(options, "-passlogfile", video.UUID)
+	}
 
 	// Mapping
 	options = append(options, "-map", "0:v:0")
-	if video.Output.AudioFile != "" && pass == 2 {
+	if video.Output.AudioFile != "" && pass != 1 {
 		options = append(options, "-map", "1:a:0")
 		options = append(options, "-c:a", "copy")
 	}
-	if video.Output.APassthrough && pass == 2 {
+	if video.Output.APassthrough && pass != 1 {
 		options = append(options, "-map", "0:a:0")
 		options = append(options, "-c:a", "copy")
 	}

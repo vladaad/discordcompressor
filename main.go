@@ -170,11 +170,17 @@ func compress(inVideo string) bool {
 		video.OutFile = customOutputFile + "." + video.Output.Settings.Container
 	}
 	// Encoding
-	log.Println("Encoding, pass 1/2")
-	encoder.EncodeVideo(video, 1)
-	wg.Wait()
-	log.Println("Encoding, pass 2/2")
-	encoder.EncodeVideo(video, 2)
+	if video.Output.Encoder.Passes == 1 {
+		wg.Wait()
+		log.Println("Encoding")
+		encoder.EncodeVideo(video, 0)
+	} else {
+		log.Println("Encoding, pass 1/2")
+		encoder.EncodeVideo(video, 1)
+		wg.Wait()
+		log.Println("Encoding, pass 2/2")
+		encoder.EncodeVideo(video, 2)
+	}
 
 	// Cleanup
 	os.Remove(video.UUID + "-0.log")
