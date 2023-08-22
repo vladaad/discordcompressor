@@ -150,9 +150,6 @@ func compress(inVideo string) bool {
 		}
 	}
 
-	// Apply video encoder bitrate multiplier
-	video.Output.Bitrate.Video = int(float64(video.Output.Bitrate.Video) * video.Output.Encoder.BMult)
-
 	if settings.Debug {
 		log.Println("Video bitrate:", video.Output.Bitrate.Video/1024)
 		log.Println("Audio bitrate:", video.Output.Bitrate.Audio/1024)
