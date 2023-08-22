@@ -101,7 +101,6 @@ type encoding struct {
 
 type Encoder struct {
 	Name   string
-	BMult  float64
 	Passes int
 	Keyint int
 	Pixfmt string

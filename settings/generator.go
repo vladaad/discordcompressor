@@ -30,7 +30,6 @@ func genVideoEncoders() {
 		fastest,
 		{
 			Name:   "fast",
-			BMult:  1,
 			Passes: 2,
 			Keyint: 10,
 			Pixfmt: "yuv420p",
@@ -38,7 +37,6 @@ func genVideoEncoders() {
 		},
 		{
 			Name:   "normal",
-			BMult:  1,
 			Passes: 2,
 			Keyint: 10,
 			Pixfmt: "yuv420p",
@@ -46,7 +44,6 @@ func genVideoEncoders() {
 		},
 		{
 			Name:   "slow",
-			BMult:  1,
 			Passes: 2,
 			Keyint: 10,
 			Pixfmt: "yuv420p",
@@ -54,7 +51,6 @@ func genVideoEncoders() {
 		},
 		{
 			Name:   "ultra",
-			BMult:  1,
 			Passes: 2,
 			Keyint: 15,
 			Pixfmt: "yuv420p10le",
@@ -74,7 +70,6 @@ func genFastestEncoder() *Encoder {
 	if nvenc {
 		encoder = &Encoder{
 			Name:   "fastest",
-			BMult:  0.9,
 			Passes: 1,
 			Keyint: 10,
 			Pixfmt: "yuv420p",
@@ -83,7 +78,6 @@ func genFastestEncoder() *Encoder {
 	} else if qsv {
 		encoder = &Encoder{
 			Name:   "fastest",
-			BMult:  0.9,
 			Passes: 1,
 			Keyint: 10,
 			Pixfmt: "yuv420p",
@@ -92,7 +86,6 @@ func genFastestEncoder() *Encoder {
 	} else if amf {
 		encoder = &Encoder{
 			Name:   "fastest",
-			BMult:  0.85,
 			Passes: 1,
 			Keyint: 10,
 			Pixfmt: "yuv420p",
@@ -101,7 +94,6 @@ func genFastestEncoder() *Encoder {
 	} else {
 		encoder = &Encoder{
 			Name:   "fastest",
-			BMult:  0.93,
 			Passes: 1,
 			Keyint: 10,
 			Pixfmt: "yuv420p",

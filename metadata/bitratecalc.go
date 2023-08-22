@@ -16,6 +16,12 @@ func CalcOverhead(video *settings.Vid) *settings.Vid {
 	var marginBase float64
 	mult := 1.0
 	switch utils.GetArg(video.Output.Encoder.Args, "-c:v") {
+	case "h264_nvenc", "h264_qsv", "h264_amf":
+		header = 15000
+		frameOverhead = 300
+		timeOverhead = 2700
+		marginBase = 720000
+		mult = 0.9 // hwenc is 1-pass only, forced multiplier
 	case "libx264":
 		header = 15000
 		frameOverhead = 300
