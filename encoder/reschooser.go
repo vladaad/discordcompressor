@@ -73,10 +73,13 @@ func CalculateResolution(video *settings.Vid) *settings.Vid {
 	bdratefac := 100 / (100 + float64(bdrate))
 	tempFilename := video.UUID + ".resa.mkv"
 
-	// fps
-	video.Output.FPS = calculateFPS(video)
-	fpsf := fpsFilter(video)
-
+	// FPS
+	var fpsModified bool
+	video.Output.FPS, fpsModified = calculateFPS(video)
+	fpsf := ""
+	if fpsModified {
+		fpsf = fpsFilter(video)
+	}
 	// ffmpeg options
 	options = append(options, "-loglevel", "warning", "-stats")
 	options = append(options, metadata.AppendTimes(video)...)

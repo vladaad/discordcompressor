@@ -29,8 +29,9 @@ func EncodeVideo(video *settings.Vid, pass int) {
 	// Filtering
 	var filters []string
 	// FPS
-	video.Output.FPS = calculateFPS(video)
-	if video.Output.FPS != video.Input.FPS {
+	var fpsModified bool
+	video.Output.FPS, fpsModified = calculateFPS(video)
+	if fpsModified {
 		f := fpsFilter(video)
 		if f != "" {
 			filters = append(filters, f)
