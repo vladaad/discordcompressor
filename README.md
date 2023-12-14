@@ -2,44 +2,36 @@
 
 # DiscordCompressor
 
-A small program in Go that efficiently compresses videos using ffmpeg.
+A small program in Go that efficiently compresses videos using FFmpeg to a certain filesize.
 
 ## Dependencies
 
-[FFmpeg](https://ffmpeg.org) including FFprobe
-
-### Optional (needed for some settings options)
-
-[qaac](https://github.com/nu774/qaac)
-[fdkaac](https://github.com/nu774/fdkaac)
+[FFmpeg](https://ffmpeg.org)
 
 ## Usage
 
 `discordcompressor <arguments> <input video(s)>`
 
 * `-o filename` - Sets the output filename, extension is automatically added
-* `-focus string` - Sets the focus - for example, "framerate" or "resolution" (configured in settings.json)
-* `-mixaudio` - Mixes all audio tracks into one
-* `-normalize` - Normalizes audio volume
-* `-noscale` - Disables FPS limiting and scaling (not recommended)
-* `-reenc string` - Force re-encodes audio or video ("a", "v", "av")
-* `-settings string` - Selects the settings file - for example, settings-test.json.
-* `-forcescore 60` - Forces a specific benchmark score when generating settings. Higher = slower, but higher-quality
-  settings.
-* `-size 8` - Sets the target size in MB
-* `-subfind string` - Finds a certain string in subtitles and cuts according to it
+* `-size 25` - Sets the target size in MB
 * `-last 10` - Compresses the last x seconds of a video
-* `-ss 15` - Sets the starting time like in ffmpeg
-* `-t 10` - Sets the time to encode after the start of the file or `-ss`
+* `-ss 15` - Sets the start time of the video in seconds
+* `-t 10` - Sets the time to encode after the start of the file or `-ss` in seconds
+* `-mixaudio` - Mixes all audio tracks into one
+* `-normaudio` - Normalizes audio volume (use if the input video's audio is very quiet, loud or uneven)
+* `-settings string` - Selects the settings file if you have multiple, or generates a new one with the chosen suffix.
+* `-debug` - Shows extra information. Please use when reporting bugs, or if you're just curious.
+* `-c:v` - Forces a certain video encoder, specified in settings.json
+* `-c:a` - Forces a certain audio encoder, specified in settings.json
+* `-f` - Forces a certain container, for example, `-f mkv` will output a .mkv file.
 
-Settings and logs are located in %appdata%\vladaad\dc on Windows and /home/username/.config/vladaad/dc on other
-platforms.
+Settings and logs are located in %appdata%\vladaad\dc on Windows and ~/.config/vladaad/dc on Linux
 
 ## Compiling from source
 
 You need [Go 1.16](https://golang.org/dl/) or newer
 
-Afterwards run `go build` or `build.sh`. `build.sh` builds execs for both 64bit and 32bit and both Windows and Linux.
+Afterwards, run `go build`
 
 <!-- prettier-ignore-start -->
 <!-- DO NOT REMOVE - contributor_list:start -->
