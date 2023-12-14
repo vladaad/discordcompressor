@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"github.com/atotto/clipboard"
 	"github.com/vladaad/discordcompressor/build"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -39,4 +41,11 @@ func GetArg(args string, argToFind string) string {
 	}
 	split2 := strings.Split(split1[1], " ")
 	return split2[1]
+}
+
+func PasteIntoClipboard(string string) {
+	err := clipboard.WriteAll(string)
+	if err != nil {
+		log.Println("Error pasting into clipboard")
+	}
 }

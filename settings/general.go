@@ -16,6 +16,7 @@ func initGeneral() *general {
 		UploadService:     "catbox",
 		UploadMaxMB:       100,
 		UploadMaxBitrate:  3500,
+		UploadEmbedLink:   true,
 	}
 }
 
@@ -32,4 +33,5 @@ type general struct {
 	UploadService     string
 	UploadMaxMB       float64
 	UploadMaxBitrate  int
+	UploadEmbedLink   bool
 }

@@ -113,7 +113,12 @@ func main() {
 	if settings.General.AutoUpload {
 		URL := uploader.Upload(outVideo)
 		if URL != "" {
+			if settings.General.UploadEmbedLink {
+				URL = "https://embeds.video/" + URL
+			}
 			log.Println("Uploaded to: " + URL)
+			log.Println("The link is also in your clipboard")
+			utils.PasteIntoClipboard(URL)
 		}
 	}
 }

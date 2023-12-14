@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/wabarc/helper v0.0.0-20210718171053-59c70d0b20c2 // indirect
 	golang.org/x/net v0.0.0-20210716203947-853a461950ff // indirect
