@@ -1,5 +1,3 @@
-<!-- DO NOT REMOVE - contributor_list:data:start:["vladaad", "0xacn"]:end -->
-
 # DiscordCompressor
 
 A small program in Go that efficiently compresses videos using FFmpeg to a certain filesize.
@@ -33,15 +31,3 @@ Settings and logs are located in %appdata%\vladaad\dc on Windows and ~/.config/v
 You need [Go 1.16](https://golang.org/dl/) or newer
 
 Afterwards, run `go build`
-
-<!-- prettier-ignore-start -->
-<!-- DO NOT REMOVE - contributor_list:start -->
-## 👥 Contributors
-
-
-- **[@vladaad](https://github.com/vladaad)**
-
-- **[@0xacn](https://github.com/0xacn)**
-
-<!-- DO NOT REMOVE - contributor_list:end -->
-<!-- prettier-ignore-end -->
