@@ -185,7 +185,7 @@ func compress(inVideo string) string {
 	}
 
 	// Resolution analysis
-	if !settings.Encoding.FastMode && settings.Encoding.AutoRes {
+	if !settings.Encoding.FastMode && settings.Encoding.AutoRes && video.Output.Encoder.Passes == 2 {
 		log.Println("Automatically choosing resolution, this may take a while...")
 		video = encoder.CalculateResolution(video)
 		if settings.Debug {
