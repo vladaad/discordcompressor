@@ -25,6 +25,7 @@ A small program in Go that efficiently compresses videos using FFmpeg to a certa
 * `-c:a` - Forces a certain audio encoder, specified in settings.json
 * `-f` - Forces a certain container, for example, `-f mkv` will output a .mkv file.
 
+Please check the wiki to get tips on how to make discordcompressor even more efficient without a performance penalty, or much faster.
 Settings and logs are located in %appdata%\vladaad\dc on Windows and ~/.config/vladaad/dc on Linux
 
 ## Compiling from source
