@@ -164,6 +164,11 @@ func compress(inVideo string) string {
 		video = metadata.CalcAudioBitrate(video)
 	}
 	video = metadata.PassthroughCheck(video)
+	// Disable passthrough when forcing encoders
+	if forceAEncoder != "" {
+		video.Output.APassthrough = false
+	}
+
 	if !video.Output.APassthrough || forceAEncoder != "" {
 		if video.Input.ATracks > 0 {
 			video.Output.AudioFile = audio.GenFilename(video)
