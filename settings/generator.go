@@ -50,11 +50,18 @@ func genVideoEncoders() {
 			Args:   "-c:v libx264 -preset veryslow -aq-mode 3",
 		},
 		{
-			Name:   "ultra",
+			Name:   "veryslow",
 			Passes: 2,
 			Keyint: 15,
 			Pixfmt: "yuv420p10le",
 			Args:   "-c:v libvpx-vp9 -lag-in-frames 25 -cpu-used 4 -auto-alt-ref 1 -arnr-maxframes 7 -arnr-strength 4 -aq-mode 0 -enable-tpl 1 -row-mt 1", // credit: BlueSwordM
+		},
+		{
+			Name:   "ultra",
+			Passes: 2,
+			Keyint: 15,
+			Pixfmt: "yuv420p10le",
+			Args:   "-c:v libaom-av1 -cpu-used 6 -aom-params tune=ssim:tune-content=animation:enable-keyframe-filtering=1:arnr-strength=1:lag-in-frames=64:sb-size=dynamic:enable-chroma-deltaq=1:enable-qm=1:quant-b-adapt=1", // credit: wiki.x266.mov/blog/av1-encoding-for-dummies
 		},
 	}
 }
