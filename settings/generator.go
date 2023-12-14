@@ -61,7 +61,7 @@ func genVideoEncoders() {
 			Passes: 2,
 			Keyint: 15,
 			Pixfmt: "yuv420p10le",
-			Args:   "-c:v libaom-av1 -cpu-used 6 -aom-params tune=ssim:tune-content=animation:enable-keyframe-filtering=1:arnr-strength=1:lag-in-frames=64:sb-size=dynamic:enable-chroma-deltaq=1:enable-qm=1:quant-b-adapt=1", // credit: wiki.x266.mov/blog/av1-encoding-for-dummies
+			Args:   "-c:v libaom-av1 -cpu-used 6 -lag-in-frames 25 -aom-params enable-keyframe-filtering=1:arnr-strength=1:sb-size=dynamic:enable-chroma-deltaq=1:enable-qm=1:quant-b-adapt=1", // credit: wiki.x266.mov/blog/av1-encoding-for-dummies
 		},
 	}
 }
