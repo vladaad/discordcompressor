@@ -66,6 +66,7 @@ func init() {
 	forceContaine := flag.String("f", "", "Uses a specific container") // don't mind the cut off letters thanks
 	mixAudio := flag.Bool("mixaudio", false, "Mix together all audio tracks")
 	normAudio := flag.Bool("normaudio", false, "Normalize the audio volume")
+	upload := flag.Bool("upload", false, "Upload the video to the service defined in settings.json")
 	flag.Parse()
 
 	if len(flag.Args()) == 0 {
@@ -88,6 +89,9 @@ func init() {
 
 	// Load defaults
 	if *targetSizeMB == float64(-1) {
+		if *upload { // This is only set when the flag is used to ensure that TargetSizeMB in settings can still be used to compensate for overhead in some configs
+			*targetSizeMB = settings.General.UploadMaxMB
+		}
 		*targetSizeMB = settings.General.TargetSizeMB
 	}
 	targetSize = int(*targetSizeMB * 8388608) // 1024*1024*8 - in bits
