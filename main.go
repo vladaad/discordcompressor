@@ -8,6 +8,7 @@ import (
 	"github.com/vladaad/discordcompressor/encoder/audio"
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
+	"github.com/vladaad/discordcompressor/uploader"
 	"github.com/vladaad/discordcompressor/utils"
 	"io"
 	"log"
@@ -96,11 +97,19 @@ func init() {
 }
 
 func main() {
-	// Empty function for now, will be used for future features if needed
-	compress(input)
+	outVideo := compress(input)
+	log.Println("Done!")
+
+	// Optional video upload
+	if settings.General.UploadService != "none" {
+		URL := uploader.Upload(outVideo)
+		if URL != "" {
+			log.Println("Uploaded to: " + URL)
+		}
+	}
 }
 
-func compress(inVideo string) bool {
+func compress(inVideo string) string {
 	var wg sync.WaitGroup
 	// Initialize variables
 	video := initVideo()
@@ -188,7 +197,7 @@ func compress(inVideo string) bool {
 	os.Remove(video.UUID + "-0.log.mbtree")
 	os.Remove(video.Output.AudioFile)
 
-	return true
+	return video.OutFile
 }
 
 func checkForFF() {
