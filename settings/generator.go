@@ -3,148 +3,170 @@ package settings
 import (
 	"github.com/vladaad/discordcompressor/utils"
 	"log"
-	"math"
-	"os/exec"
-	"strconv"
-	"strings"
-	"time"
 )
 
-func populateSettings() {
-	Encoding.AudioEncoders = []*AudioEncoder{generateAudioEncoder()}
-	selectPresets()
+func newSettings() {
+	log.Println("Generating new settings")
+	genAudioEncoders()
+	genVideoEncoders()
 }
 
-func generateAudioEncoder() *AudioEncoder {
-	var encoder *AudioEncoder
-	if utils.CheckIfPresent("qaac64") {
-		encoder = &AudioEncoder{
-			Name:        "aac",
-			Type:        "qaac",
-			Encoder:     "",
-			CodecName:   "aac",
-			Options:     "-V 64",
-			UsesBitrate: false,
-			MaxBitrate:  144,
-			MinBitrate:  96,
-			BitratePerc: 10,
+func genAudioEncoders() {
+	aac := genAACEncoder()
+	opus := genOpusEncoder()
+
+	if Debug {
+		log.Println("Automatic encoder choice")
+		log.Println("AAC: ", aac.Type, ", Opus: ", opus.Type)
+	}
+
+	Encoding.AEncoders = []*AudioEncoder{aac, opus}
+}
+
+func genVideoEncoders() {
+	fastest := genFastestEncoder()
+
+	Encoding.Encoders = []*Encoder{
+		fastest,
+		{
+			Name:   "fast",
+			Passes: 2,
+			Keyint: 10,
+			Pixfmt: "yuv420p",
+			Args:   "-c:v libx264 -preset medium -aq-mode 3",
+		},
+		{
+			Name:   "normal",
+			Passes: 2,
+			Keyint: 10,
+			Pixfmt: "yuv420p",
+			Args:   "-c:v libx264 -preset slow -aq-mode 3",
+		},
+		{
+			Name:   "slow",
+			Passes: 2,
+			Keyint: 10,
+			Pixfmt: "yuv420p",
+			Args:   "-c:v libx264 -preset veryslow -aq-mode 3",
+		},
+		{
+			Name:   "veryslow",
+			Passes: 2,
+			Keyint: 15,
+			Pixfmt: "yuv420p10le",
+			Args:   "-c:v libvpx-vp9 -lag-in-frames 25 -cpu-used 4 -auto-alt-ref 1 -arnr-maxframes 7 -arnr-strength 4 -aq-mode 0 -enable-tpl 1 -row-mt 1", // credit: BlueSwordM
+		},
+		{
+			Name:   "ultra",
+			Passes: 2,
+			Keyint: 15,
+			Pixfmt: "yuv420p10le",
+			Args:   "-c:v libaom-av1 -cpu-used 6 -lag-in-frames 25 -aom-params enable-keyframe-filtering=1:arnr-strength=1:sb-size=dynamic:enable-chroma-deltaq=1:enable-qm=1:quant-b-adapt=1", // credit: wiki.x266.mov/blog/av1-encoding-for-dummies
+		},
+	}
+}
+
+func genFastestEncoder() *Encoder {
+	var encoder *Encoder
+	log.Println("Checking hardware encoders, this may take a while")
+	// fuck this shit i hate multithreading
+	nvenc := checkEncoder("h264_nvenc", false)
+	qsv := checkEncoder("h264_qsv", false)
+	amf := checkEncoder("h264_amf", false)
+
+	if nvenc {
+		encoder = &Encoder{
+			Name:   "fastest",
+			Passes: 1,
+			Keyint: 10,
+			Pixfmt: "yuv420p",
+			Args:   "-c:v h264_nvenc -preset p7",
 		}
-	} else if strings.Contains(utils.CommandOutput("ffmpeg", []string{"-h", "encoder=libfdk_aac"}), "Fraunhofer FDK AAC") {
-		encoder = &AudioEncoder{
-			Name:        "aac",
-			Type:        "ffmpeg",
-			Encoder:     "libfdk_aac",
-			CodecName:   "aac",
-			Options:     "-vbr 3",
-			UsesBitrate: false,
-			MaxBitrate:  144,
-			MinBitrate:  96,
-			BitratePerc: 10,
+	} else if qsv {
+		encoder = &Encoder{
+			Name:   "fastest",
+			Passes: 1,
+			Keyint: 10,
+			Pixfmt: "yuv420p",
+			Args:   "-c:v h264_qsv -preset veryslow",
 		}
-	} else if utils.CheckIfPresent("fdkaac") {
-		encoder = &AudioEncoder{
-			Name:        "aac",
-			Type:        "fdkaac",
-			Encoder:     "",
-			CodecName:   "aac",
-			Options:     "-m 3",
-			UsesBitrate: true,
-			MaxBitrate:  144,
-			MinBitrate:  96,
-			BitratePerc: 10,
+	} else if amf {
+		encoder = &Encoder{
+			Name:   "fastest",
+			Passes: 1,
+			Keyint: 10,
+			Pixfmt: "yuv420p",
+			Args:   "-c:v h264_amf -quality quality",
 		}
 	} else {
-		encoder = &AudioEncoder{
-			Name:        "aac",
-			Type:        "ffmpeg",
-			Encoder:     "aac",
-			CodecName:   "aac",
-			Options:     "",
-			UsesBitrate: true,
-			MaxBitrate:  192,
-			MinBitrate:  160,
-			BitratePerc: 10,
-		}
-		// use twoloop if possible
-		if strings.Contains(utils.CommandOutput("ffmpeg", []string{"-h", "encoder=aac"}), "twoloop") {
-			encoder.Options = "-aac_coder twoloop"
-			encoder.MaxBitrate = 160
-			encoder.MinBitrate = 128
+		encoder = &Encoder{
+			Name:   "fastest",
+			Passes: 1,
+			Keyint: 10,
+			Pixfmt: "yuv420p",
+			Args:   "-c:v libx264 -preset veryfast -aq-mode 3",
 		}
 	}
 	return encoder
 }
 
-func selectPresets() {
-	presets := []string{"veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow"}
-	offsets := []int{2, 3, 4, 4, 5, 6, 6} // look into encoding.go - offset from the "base" fast preset
-	offset := 0
-	slowest := 6
-	fastest := 0
-	score := 0.0
+func genAACEncoder() *AudioEncoder {
+	var encoder *AudioEncoder
 
-	if ForceScore == -1 {
-		score = benchmarkx264()
+	if utils.CheckIfPresent("qaac64") {
+		encoder = &AudioEncoder{
+			Name:  "aac",
+			Type:  "qaac",
+			BMult: 1.2,
+			BMax:  144,
+			BMin:  72,
+			TVBR:  false,
+			Args:  "",
+		}
+	} else if utils.CheckIfPresent("fhgaacenc") {
+		encoder = &AudioEncoder{
+			Name:  "aac",
+			Type:  "fhgaac",
+			BMult: 1.2,
+			BMax:  144,
+			BMin:  72,
+			TVBR:  false,
+			Args:  "",
+		}
+	} else if utils.CheckIfPresent("fdkaac") {
+		encoder = &AudioEncoder{
+			Name:  "aac",
+			Type:  "fdkaac",
+			BMult: 1.2,
+			BMax:  144,
+			BMin:  72,
+			TVBR:  false,
+			Args:  "",
+		}
 	} else {
-		score = ForceScore
+		encoder = &AudioEncoder{
+			Name:  "aac",
+			Type:  "ffmpeg",
+			BMult: 1.4,
+			BMax:  192,
+			BMin:  96,
+			TVBR:  false,
+			Args:  "-c:a aac",
+		}
 	}
-
-	// Select offsets depending on score
-	// yes, this is a mess
-	if score > 120 { // score 120+ - medium is fastest, medium -> slow,...
-		offset = 1
-		fastest = 4
-	} else if score > 70 { // score 70+ - fast is fastest, medium -> slow,...
-		offset = 1
-	} else if score > 45 { // score 45+ - default
-		offset = 0
-	} else if score > 30 { // score 30+ - slower is slowest, medium -> fast,...
-		offset = -1
-		slowest = 5
-	} else if score > 20 { // score 20+ - faster is fastest, slow is slowest, medium -> faster,...
-		offset = -2
-		fastest = 1
-	} else if score > 10 { // score 10+ - medium -> veryfast,...
-		offset = -3
-	} else { // potato - medium is slowest, medium -> veryfast,...
-		offset = -3
-		slowest = 3
-	}
-
-	// Apply presets
-	for i := range offsets {
-		presetN := offsets[i] + offset
-
-		// holy mother of spaghetti code
-		presetN = int(math.Min(float64(presetN), float64(slowest))) // clamp to slowest
-		presetN = int(math.Max(float64(presetN), float64(fastest))) // clamp to fastest
-
-		Encoding.BitrateTargets[i].Preset = presets[presetN]
-	}
+	return encoder
 }
 
-func benchmarkx264() float64 {
-	log.Println("Testing your PC....")
-	log.Println("This may take up to 20 seconds, be patient!")
-	cmd := exec.Command(General.FFmpegExecutable,
-		"-f", "lavfi", "-i", "nullsrc=192x108", "-vframes", "60",
-		"-vf", "geq=random(1)*255:128:128,scale=-2:1080:flags=neighbor",
-		"-c:v", "libx264", "-preset", "fast", "-crf", "51", "-f", "null", utils.NullDir(),
-	)
-
-	start := time.Now()
-	err := cmd.Start()
-
-	err = cmd.Wait()
-	elapsed := time.Since(start)
-
-	if err != nil {
-		log.Println("Benchmark failed")
-		return 50
+func genOpusEncoder() *AudioEncoder {
+	var encoder *AudioEncoder // for future expansion
+	encoder = &AudioEncoder{
+		Name:  "opus",
+		Type:  "ffmpeg",
+		BMult: 1,
+		BMax:  128,
+		BMin:  32,
+		TVBR:  false,
+		Args:  "-c:a libopus",
 	}
-
-	score := 1.5 * 60 / elapsed.Seconds()
-	log.Println("Benchmark score: " + strconv.FormatFloat(score, 'f', 0, 64))
-
-	return score
+	return encoder
 }

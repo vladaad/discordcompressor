@@ -4,14 +4,12 @@ import (
 	"encoding/json"
 	"github.com/vladaad/discordcompressor/settings"
 	"log"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 )
 
 type StreamList struct {
-	Frames  []Frame  `json:"frames"`
 	Streams []Stream `json:"streams"`
 	Format  Format   `json:"format"`
 }
@@ -23,10 +21,8 @@ type Stream struct {
 	Height     int    `json:"height"`
 	Pixfmt     string `json:"pix_fmt"`
 	Framerate  string `json:"r_frame_rate"`
-	Samplerate string `json:"sample_rate"`
 	Channels   int    `json:"channels"`
 	Bitrate    string `json:"bit_rate"`
-	Tags       Tag    `json:"tags"`
 }
 
 type Format struct {
@@ -34,31 +30,15 @@ type Format struct {
 	Bitrate  string `json:"bit_rate"`
 }
 
-type Frame struct {
-	SideDataList []SideData `json:"side_data_list"`
-}
-
-type SideData struct {
-	Type string `json:"side_data_type"`
-}
-
-type Tag struct {
-	Language string `json:"language""`
-}
-
-func GetStats(filepath string, audioonly bool) *settings.VidStats {
-	stats := new(settings.VidStats)
-	if _, err := os.Stat(filepath); err != nil {
-		panic(filepath + " doesn't exist")
-	}
-
+func GetStats(filename string, audioonly bool) *settings.InputStats {
+	stats := new(settings.InputStats)
+	stats.Bitrate = new(settings.Bitrates)
 	probe, err := exec.Command(
 		settings.General.FFprobeExecutable,
 		"-loglevel", "quiet",
 		"-of", "json",
 		"-show_entries", "stream:format",
-		"-show_frames", "-read_intervals", "%+#1",
-		filepath,
+		filename,
 	).Output()
 
 	if err != nil {
@@ -75,53 +55,31 @@ func GetStats(filepath string, audioonly bool) *settings.VidStats {
 
 	if !audioonly {
 		videoStream := findFirstStream("video", probeOutput.Streams)
-		stats.VideoBitrate, _ = strconv.ParseFloat(videoStream.Bitrate, 64)
-		stats.VideoCodec = videoStream.CodecName
+		stats.Bitrate.Video, _ = strconv.Atoi(videoStream.Bitrate)
+		stats.VCodec = videoStream.CodecName
 		stats.Pixfmt = videoStream.Pixfmt
 		stats.Width = videoStream.Width
 		stats.Height = videoStream.Height
 		// FPS
+		fps := new(settings.FPS)
 		fpsSplit := strings.Split(videoStream.Framerate, "/")
-		n1, _ := strconv.ParseFloat(fpsSplit[0], 64)
-		n2, _ := strconv.ParseFloat(fpsSplit[1], 64)
-		stats.FPS = n1 / n2
-		// HDR detect
-		if len(probeOutput.Frames) != 0 {
-			if len(probeOutput.Frames[0].SideDataList) != 0 {
-				for i := range probeOutput.Frames[0].SideDataList {
-					if probeOutput.Frames[0].SideDataList[i].Type == "Mastering display metadata" {
-						stats.IsHDR = true
-					}
-				}
-			}
-		}
+		n1, _ := strconv.Atoi(fpsSplit[0])
+		n2, _ := strconv.Atoi(fpsSplit[1])
+		fps.N, fps.D = n1, n2
+		stats.FPS = fps
 	}
 	// Other
 	stats.Duration, _ = strconv.ParseFloat(probeOutput.Format.Duration, 64)
-	stats.Bitrate, _ = strconv.ParseFloat(probeOutput.Format.Bitrate, 64)
+	stats.Bitrate.Total, _ = strconv.Atoi(probeOutput.Format.Bitrate)
 	// Audio
-	stats.AudioTracks = countStreams("audio", probeOutput.Streams)
-	if stats.AudioTracks != 0 {
+	stats.ATracks = countStreams("audio", probeOutput.Streams)
+	if stats.ATracks != 0 {
 		audioStream := findFirstStream("audio", probeOutput.Streams)
-		stats.AudioCodec = audioStream.CodecName
-		stats.AudioBitrate, _ = strconv.ParseFloat(audioStream.Bitrate, 64)
-		stats.SampleRate, _ = strconv.Atoi(audioStream.Samplerate)
-		stats.AudioChannels = audioStream.Channels
-	}
-	// Subtitles
-	for i := range probeOutput.Streams {
-		if probeOutput.Streams[i].StreamType == "subtitle" {
-			if probeOutput.Streams[i].Tags.Language == settings.Advanced.SubfinderLang && !stats.MatchingSubs {
-				stats.MatchingSubs = true
-				stats.SubtitleStream = i
-			}
-		}
+		stats.ACodec = audioStream.CodecName
+		stats.Bitrate.Audio, _ = strconv.Atoi(audioStream.Bitrate)
+		stats.AChannels = audioStream.Channels
 	}
 
-	// Bitrates -> k
-	stats.Bitrate /= 1024
-	stats.VideoBitrate /= 1024
-	stats.AudioBitrate /= 1024
 	return stats
 }
 

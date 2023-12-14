@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
+	"github.com/google/uuid"
 	"github.com/vladaad/discordcompressor/build"
+	"github.com/vladaad/discordcompressor/encoder"
 	"github.com/vladaad/discordcompressor/encoder/audio"
-	"github.com/vladaad/discordcompressor/encoder/video"
 	"github.com/vladaad/discordcompressor/metadata"
 	"github.com/vladaad/discordcompressor/settings"
-	"github.com/vladaad/discordcompressor/subtitles"
+	"github.com/vladaad/discordcompressor/uploader"
 	"github.com/vladaad/discordcompressor/utils"
 	"io"
 	"log"
@@ -18,20 +19,18 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
-var reEncV bool
-var reEncA bool
-var targetSizeKbit float64
+var targetSize int
 var targetStartingTime float64
 var lastSeconds float64
 var targetTotalTime float64
-var stringToFind string
 var customOutputFile string
-var input []string
-var wg sync.WaitGroup
-var runningInstances int
+var input string
+
+var forceEncoder string
+var forceAEncoder string
+var forceContainer string
 
 func init() {
 	// Update checker
@@ -59,295 +58,166 @@ func init() {
 	startTime := flag.Float64("ss", float64(0), "Sets the starting time")
 	targetTime := flag.Float64("t", float64(0), "Sets the time to encode")
 	lastXSeconds := flag.Float64("last", float64(0), "Sets the time from the end to encode")
-	stringToFindA := flag.String("subfind", "", "Finds and cuts out time from subtitle text")
-	targetSize := flag.Float64("size", float64(-1), "Sets the target size in MB")
+	targetSizeMB := flag.Float64("size", float64(-1), "Sets the target size in MB")
 	debug := flag.Bool("debug", false, "Prints extra info")
-	focus := flag.String("focus", "", "Sets the focus")
-	original := flag.Bool("noscale", false, "Disables FPS limiting and scaling")
-	mixTracks := flag.Bool("mixaudio", false, "Mixes all audio tracks into one")
-	normalize := flag.Bool("normalize", false, "Normalizes audio volume")
-	dryRun := flag.Bool("dryrun", false, "Just prints commands instead of running")
-	reEncode := flag.String("reenc", "", "Re-encodes even when not needed. \"a\", \"v\" or \"av\"")
-	forceBenchScore := flag.Float64("forcescore", -1, "Forces a specific benchmark score when generating settings")
 	customOutput := flag.String("o", "", "Outputs to a specific filename")
+	forceEncode := flag.String("c:v", "", "Uses a specific encoder")
+	forceAEncode := flag.String("c:a", "", "Uses a specific audio encoder")
+	forceContaine := flag.String("f", "", "Uses a specific container") // don't mind the cut off letters thanks
+	mixAudio := flag.Bool("mixaudio", false, "Mix together all audio tracks")
+	normAudio := flag.Bool("normaudio", false, "Normalize the audio volume")
+	upload := flag.Bool("upload", false, "Upload the video to the service defined in settings.json")
 	flag.Parse()
-	// Settings loading
-	input = flag.Args()
+
+	if len(flag.Args()) == 0 {
+		log.Println("No input file specified")
+		os.Exit(0)
+	}
+	// Forcing
+	forceEncoder = *forceEncode
+	forceAEncoder = *forceAEncode
+	forceContainer = *forceContaine
+
+	input = flag.Args()[0]
 	targetStartingTime = *startTime
 	targetTotalTime = *targetTime
 	lastSeconds = *lastXSeconds
-	stringToFind = *stringToFindA
 	customOutputFile = *customOutput
-	settings.ForceScore = *forceBenchScore
 	settings.Debug = *debug
-	settings.Original = *original
-	settings.Focus = *focus
-	settings.DryRun = *dryRun
+	settings.MixAudio = *mixAudio
+	settings.NormAudio = *normAudio
 
-	// Reenc
-	reEncA, reEncV = false, false
-	if !(*reEncode == "a" || *reEncode == "av" || *reEncode == "va" || *reEncode == "v" || *reEncode == "") {
-		log.Println("The re-encode argument must be \"a\", \"v\" or \"av\"/\"va\".")
-		os.Exit(0)
-	} else {
-		switch *reEncode {
-		case "av", "va":
-			reEncA, reEncV = true, true
-		case "v":
-			reEncV = true
-		case "a":
-			reEncA = true
+	// Settings loading
+	settings.LoadSettings(*settingsFile)
+
+	// Load defaults
+	if *targetSizeMB == float64(-1) {
+		if *upload { // This is only set when the flag is used to ensure that TargetSizeMB in settings can still be used to compensate for overhead in some configs
+			*targetSizeMB = settings.General.UploadMaxMB
 		}
+		*targetSizeMB = settings.General.TargetSizeMB
+	}
+	targetSize = int(*targetSizeMB * 8388608) // 1024*1024*8 - in bits
+
+	if *upload {
+		settings.General.AutoUpload = *upload
 	}
 
-	// ;)
-	newSettings := settings.LoadSettings(*settingsFile)
-	if len(input) == 0 && !newSettings {
-		utils.OpenURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
-	}
-
-	if len(input) == 0 {
-		log.Println("No input video specified, closing...")
-		os.Exit(0)
-	}
-	// load defaults of some settings
-	if *targetSize == float64(-1) {
-		*targetSize = settings.Encoding.SizeTargetMB
-	}
-	if *mixTracks {
-		settings.Advanced.MixAudioTracks = *mixTracks
-	}
-	if *normalize {
-		settings.Advanced.NormalizeAudio = *normalize
-	}
-	settings.TargetSize = *targetSize
-	targetSizeKbit = *targetSize * 8192
-
-	// batch mode checks
-	if customOutputFile != "" && len(input) > 1 {
-		log.Println("Can't output to the same file multiple times!")
-		os.Exit(0)
-	}
-
-	// enable batch mode - stdout
-	if len(input) > 1 && settings.General.BatchModeThreads > 1 {
-		settings.BatchMode = true
-	}
-
-	if settings.Debug || !settings.BatchMode {
-		settings.ShowStdOut = true
-	} else {
-		settings.ShowStdOut = false
-	}
 }
 
 func main() {
-	for i := range input {
-		// yes this is a mess
-		for {
-			if runningInstances < settings.General.BatchModeThreads {
-				wg.Add(1)
-				runningInstances += 1
-				go compress(input[i])
-				break
+	outVideo := compress(input)
+	log.Println("Done!")
+
+	// Optional video upload
+	if settings.General.AutoUpload {
+		URL := uploader.Upload(outVideo)
+		if URL != "" {
+			if settings.General.UploadEmbedLink {
+				URL = "https://embeds.video/" + URL
 			}
-			time.Sleep(time.Millisecond * 50)
+			log.Println("Uploaded to: " + URL)
+			log.Println("The link is also in your clipboard")
+			utils.PasteIntoClipboard(URL)
 		}
-	}
-	wg.Wait()
-	if len(input) > 1 {
-		log.Println("All files completed!")
 	}
 }
 
-func compress(inVideo string) bool {
-	var prefix string
-	defer wg.Done()
-	// Logging
-	_, cleanName := path.Split(strings.ReplaceAll(inVideo, "\\", "/"))
-	if settings.BatchMode {
-		prefix = "[" + cleanName + "] "
-	}
-	log.Println("Compressing " + cleanName)
-
-	// Initialize video
+func compress(inVideo string) string {
+	var wg sync.WaitGroup
+	// Initialize variables
 	video := initVideo()
-	video.Filename = inVideo
-	video.Size = targetSizeKbit
+	video.InFile = inVideo
 
-	video.Output.Audio.Normalize = settings.Advanced.NormalizeAudio
-	video.Output.Audio.Mix = settings.Advanced.MixAudioTracks
-
-	// Video analysis
-	log.Println(prefix + "Analyzing video...")
-	video.Input = metadata.GetStats(inVideo, false)
-
-	// Subtitle checking
-	if stringToFind != "" {
-		if video.Input.MatchingSubs {
-			targetStartingTime, targetTotalTime = subtitles.FindTime(video, stringToFind)
-			if targetStartingTime == -1 || targetTotalTime == -1 {
-				log.Println("Segment not found, try searching again! Keep in mind that discordcompressor can only find one specific subtitle for now.")
-				os.Exit(0)
-			}
-			// Time compensation
-			targetStartingTime -= settings.Advanced.SubStartOffset
-			targetTotalTime += settings.Advanced.SubStartOffset + settings.Advanced.SubEndOffset
-			// Clamping values
-			targetTotalTime = math.Min(targetTotalTime, video.Input.Duration)
-			targetStartingTime = math.Max(0, targetStartingTime)
-
-			targetTotalTime -= targetStartingTime
-
-		} else {
-			log.Println("Error: subtitles with your target language not found.")
-			os.Exit(0)
-		}
+	// Check if file exists
+	if _, err := os.Stat(video.InFile); err != nil {
+		panic(video.InFile + " doesn't exist")
 	}
 
-	// Checking time
-	video.Time.Time, video.Time.Start = targetTotalTime, targetStartingTime
-	if targetTotalTime == 0 {
-		video.Time.Time = video.Input.Duration
-	}
-	if settings.BatchMode && (video.Time.Time != video.Input.Duration || video.Time.Start != 0) {
-		log.Fatalln("Cannot use time arguments with batch mode except -last!")
-	} else {
-		if lastSeconds != 0 && (video.Time.Time != video.Input.Duration || video.Time.Start != 0) {
-			log.Println(prefix + "Cannot use -t or -ss with -last!")
-			return false
-		}
-		// LastSeconds
-		if lastSeconds != 0 {
-			video.Time.Start = video.Input.Duration - lastSeconds
-			video.Time.Time = lastSeconds
-		} else { // ss+t
-			if video.Time.Start != 0 && video.Time.Time == video.Input.Duration {
-				video.Time.Time = video.Input.Duration - video.Time.Start
-			}
-			if video.Time.Start+video.Time.Time > video.Input.Duration {
-				log.Println(prefix + "Invalid length!")
-				return false
-			}
-		}
+	// Video analysis, time calculation
+	log.Println("Analyzing video...")
+	video.Input = metadata.GetStats(video.InFile, false)
+	video = metadata.CalculateTime(video, lastSeconds, targetStartingTime, targetTotalTime)
+
+	// Bitrate calculation
+	// min(target bps/time, max bps)
+	video.Output.Bitrate.Total = int(math.Min(float64(targetSize)/video.Time.Duration, float64(settings.Encoding.MaxBitrate*1024)))
+
+	// Cap for uploading
+	// min(target bps, max bps)
+	if settings.General.AutoUpload {
+		video.Output.Bitrate.Total = int(math.Min(float64(video.Output.Bitrate.Total), float64(settings.General.UploadMaxBitrate*1024)))
 	}
 
-	if settings.Debug {
-		log.Println("Input stats:")
-		log.Println(strconv.Itoa(video.Input.Height) + "p " + strconv.FormatFloat(video.Input.FPS, 'f', -1, 64) + "fps")
-		log.Println("Length: " + strconv.FormatFloat(video.Input.Duration, 'f', -1, 64) + " seconds")
-		log.Println("Pixel format: " + video.Input.Pixfmt)
-		log.Println("Audio tracks: " + strconv.Itoa(video.Input.AudioTracks))
-		if video.Input.AudioTracks != 0 {
-			log.Println(video.Input.AudioCodec + ", " + strconv.FormatFloat(video.Input.AudioBitrate, 'f', 1, 64) + "k")
-			log.Println(strconv.Itoa(video.Input.SampleRate) + "hz " + strconv.Itoa(video.Input.AudioChannels) + "ch")
-		}
-	}
-
-	// Total bitrate calc
-	err := false
-	video.Output.TotalBitrate, err = metadata.CalcTotalBitrate(video)
-	if err {
-		return false
-	}
-
-	// Choosing target
+	// Encoder selection
+	video.Output.Force.Video, video.Output.Force.Audio, video.Output.Force.Container = forceEncoder, forceAEncoder, forceContainer
 	video = metadata.SelectEncoder(video)
+	video = metadata.CalcOverhead(video)
 
-	// Overshoot compensation
-	overhead := metadata.CalcOverhead(math.Min(float64(video.Output.Video.Limits.FPSMax), video.Input.FPS), video.Time.Time)
-	if video.Output.Video.Encoder.Name == "libx264" {
-		overhead += metadata.CalcH264Overhead(video.Time.Time)
-	}
-	video.Output.TotalBitrate = video.Output.TotalBitrate - overhead
-
-	// AB calc & passthrough
-	hasAudio := true
-	video.Output.Audio.Bitrate = metadata.CalcAudioBitrate(video)
-	video = metadata.CheckStreamCompatibility(video)
-	if reEncA {
-		video.Output.Audio.Passthrough = false
-	}
-	if reEncV {
-		video.Output.Video.Passthrough = false
+	// Force fast mode with 1-pass
+	if video.Output.Encoder.Passes == 1 {
+		settings.Encoding.FastMode = true
 	}
 
-	// Audio encoding
-	if !video.Output.Audio.Passthrough && video.Input.AudioTracks != 0 {
-		log.Println(prefix + "Encoding audio...")
-		video.Output.Audio.Bitrate, video.Output.Audio.Filename = audio.EncodeAudio(video)
-		if video.Output.Audio.Filename == "" {
-			video.Output.Audio.Bitrate = 0
-			hasAudio = false
-		}
-	} else if !video.Output.Audio.Passthrough {
-		video.Output.Audio.Bitrate = 0
+	// Audio bitrate calculation and encoding
+	if video.Input.ATracks > 0 {
+		video = metadata.CalcAudioBitrate(video)
 	}
-
-	// Video bitrate calc
-	video.Output.Video.Bitrate = video.Output.TotalBitrate - video.Output.Audio.Bitrate
-
-	// Debug
-	if settings.Debug {
-		log.Println("Calculated target bitrate: " + strconv.FormatFloat(video.Output.TotalBitrate, 'f', 1, 64) + "k")
-		log.Println("Overhead: " + strconv.FormatFloat(overhead, 'f', 1, 64) + "k")
-		if video.Input.AudioTracks != 0 {
-			log.Println("Calculated video bitrate: " + strconv.FormatFloat(video.Output.Video.Bitrate, 'f', 1, 64) + "k")
-			log.Println("Calculated audio bitrate: " + strconv.FormatFloat(video.Output.Audio.Bitrate, 'f', 1, 64) + "k")
-		}
-	}
-
-	suffix := strings.ReplaceAll(settings.General.OutputSuffix, "%s", strconv.FormatFloat(video.Size/8192, 'f', -1, 64))
-	outFilename := strings.TrimSuffix(video.Filename, path.Ext(video.Filename)) + suffix + "." + video.Output.Video.Encoder.Container
-
-	// Custom output filename
-	if customOutputFile != "" {
-		outFilename = customOutputFile + "." + video.Output.Video.Encoder.Container
-	}
-
-	// Subtitle extraction
-	video.Output.Subs.BurnSubs = settings.Advanced.BurnSubtitles
-	if !video.Input.MatchingSubs {
-		video.Output.Subs.BurnSubs = false
-	}
-	if video.Output.Subs.BurnSubs {
-		log.Println("Extracting subtitles...")
-		video.Output.Subs.SubFile = subtitles.ExtractSubs(video)
-		if video.Output.Subs.SubFile != "" {
-			video.Input.SubtitleStream = metadata.GetStats(video.Output.Subs.SubFile, true).SubtitleStream // hacky but works
+	video = metadata.PassthroughCheck(video)
+	if !video.Output.APassthrough || forceAEncoder != "" {
+		if video.Input.ATracks > 0 {
+			video.Output.AudioFile = audio.GenFilename(video)
+			wg.Add(1)
+			if settings.Encoding.FastMode {
+				go audio.EncodeAudio(video, &wg)
+			} else {
+				log.Println("Encoding audio...")
+				audio.EncodeAudio(video, &wg)
+			}
 		} else {
-			log.Println("Subtitles couldn't be extracted! Not burning")
+			video.Output.Bitrate.Video = video.Output.Bitrate.Total
 		}
 	}
 
-	// Software HDR warning
-	if video.Input.IsHDR && !settings.Decoding.TonemapHWAccel {
-		log.Println(prefix + "Warning: tonemapping HDR video in software - this is very slow")
+	if settings.Debug {
+		log.Println("Video bitrate:", video.Output.Bitrate.Video/1024)
+		log.Println("Audio bitrate:", video.Output.Bitrate.Audio/1024)
 	}
 
-	// Encode
-	if video.Output.Video.Encoder.TwoPass && !video.Output.Video.Passthrough {
-		log.Println(prefix + "Encoding, pass 1/2")
-		vidEnc.Encode(video, outFilename, 1)
-		log.Println(prefix + "Encoding, pass 2/2")
-		vidEnc.Encode(video, outFilename, 2)
+	// Resolution analysis
+	if !settings.Encoding.FastMode && settings.Encoding.AutoRes {
+		log.Println("Automatically choosing resolution, this may take a while...")
+		video = encoder.CalculateResolution(video)
+		if settings.Debug {
+			log.Println("Chosen vertical resolution:", video.Output.Settings.MaxVRes)
+		}
+	}
+
+	// Output filename
+	suffix := strings.ReplaceAll(settings.General.OutputSuffix, "%s", strconv.FormatFloat(float64(targetSize)/8388608, 'f', 1, 64))
+	video.OutFile = strings.TrimSuffix(video.InFile, path.Ext(video.InFile)) + suffix + "." + video.Output.Settings.Container
+	if customOutputFile != "" {
+		video.OutFile = customOutputFile + "." + video.Output.Settings.Container
+	}
+	// Encoding
+	if video.Output.Encoder.Passes == 1 {
+		wg.Wait()
+		log.Println("Encoding")
+		encoder.EncodeVideo(video, 0)
 	} else {
-		log.Println(prefix + "Encoding, pass 1/1")
-		vidEnc.Encode(video, outFilename, 0)
+		log.Println("Encoding, pass 1/2")
+		encoder.EncodeVideo(video, 1)
+		wg.Wait()
+		log.Println("Encoding, pass 2/2")
+		encoder.EncodeVideo(video, 2)
 	}
 
-	os.Remove(video.Output.Subs.SubFile)
+	// Cleanup
 	os.Remove(video.UUID + "-0.log")
 	os.Remove(video.UUID + "-0.log.mbtree")
+	os.Remove(video.Output.AudioFile)
 
-	if hasAudio {
-		os.Remove(video.Output.Audio.Filename)
-	}
-
-	log.Println("Finished compressing " + cleanName + "!")
-
-	runningInstances -= 1
-	return true
+	return video.OutFile
 }
 
 func checkForFF() {
@@ -370,18 +240,18 @@ func checkForFF() {
 	}
 }
 
-func initVideo() *settings.Video {
+func initVideo() *settings.Vid {
 	// god fucking dammit
-	video := new(settings.Video)
+	video := new(settings.Vid)
 	time := new(settings.Time)
+	bitrates := new(settings.Bitrates)
 	output := new(settings.Out)
-	videoo := new(settings.VideoOut)
-	audioo := new(settings.AudioOut)
-	subs := new(settings.SubOut)
-	output.Video, output.Audio, output.Subs = videoo, audioo, subs
-	video.Time = time
+	force := new(settings.Force)
+	output.Bitrate = bitrates
 	video.Output = output
-	video.UUID = utils.GenUUID()
+	video.Output.Force = force
+	video.Time = time
+	video.UUID = uuid.New().String()
 
 	return video
 }

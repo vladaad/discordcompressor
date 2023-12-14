@@ -10,18 +10,22 @@ import (
 	"strings"
 )
 
-func encFFmpeg(video *settings.Vid, input io.ReadCloser) {
+func encFHG(video *settings.Vid, input io.ReadCloser) {
 	var options []string
-	encoderSettings := strings.Split(video.Output.AEncoder.Args, " ")
-	// input
-	options = append(options, "-loglevel", "quiet", "-stats")
-	options = append(options, "-i", "-")
-	// encoding
-	options = append(options, encoderSettings...)
-	if !video.Output.AEncoder.TVBR {
-		options = append(options, "-b:a", strconv.Itoa(video.Output.Bitrate.Audio))
+	var encoderSettings []string
+	if video.Output.AEncoder.Args != "" {
+		encoderSettings = strings.Split(video.Output.AEncoder.Args, " ")
 	}
-	options = append(options, "-map", "0:a:0")
+
+	// encoding
+	if encoderSettings != nil {
+		options = append(options, encoderSettings...)
+	}
+	if !video.Output.AEncoder.TVBR {
+		options = append(options, "--cbr", strconv.Itoa(video.Output.Bitrate.Audio/1024))
+	}
+	// input
+	options = append(options, "-")
 	// output
 	options = append(options, video.Output.AudioFile)
 
@@ -30,7 +34,7 @@ func encFFmpeg(video *settings.Vid, input io.ReadCloser) {
 	}
 
 	// running
-	cmd := exec.Command(settings.General.FFmpegExecutable, options...)
+	cmd := exec.Command(settings.General.FHGaacExecutable, options...)
 
 	cmd.Stdin = input
 

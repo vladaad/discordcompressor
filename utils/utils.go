@@ -1,8 +1,7 @@
 package utils
 
 import (
-	"fmt"
-	"github.com/google/uuid"
+	"github.com/atotto/clipboard"
 	"github.com/vladaad/discordcompressor/build"
 	"log"
 	"os"
@@ -11,59 +10,6 @@ import (
 	"runtime"
 	"strings"
 )
-
-func OpenURL(url string) {
-	var err error
-
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func GenUUID() string {
-	raw := uuid.New()
-	cleaned := strings.ReplaceAll(raw.String(), "-", "")
-	return cleaned
-}
-
-func Contains(input string, list []string) bool {
-	for i := range list {
-		if input == list[i] {
-			return true
-		}
-	}
-	return false
-}
-
-func ContainsInt(input int, list []int) bool {
-	for i := range list {
-		if input == list[i] {
-			return true
-		}
-	}
-	return false
-}
-
-func NullDir() string {
-	var null string
-	switch runtime.GOOS {
-	case "windows":
-		null = "NUL"
-	default:
-		null = "/dev/null"
-	}
-	return null
-}
 
 func SettingsDir() string {
 	if build.BUILD == "portable" {
@@ -82,10 +28,24 @@ func SettingsDir() string {
 
 func CheckIfPresent(filename string) bool {
 	_, err := exec.Command(filename).Output()
+	if err == nil {
+		return true
+	}
 	return !strings.Contains(err.Error(), "executable file not found")
 }
 
-func CommandOutput(filename string, args []string) string {
-	out, _ := exec.Command(filename, args...).Output()
-	return string(out)
+func GetArg(args string, argToFind string) string {
+	split1 := strings.Split(args, argToFind)
+	if len(split1) < 2 {
+		return ""
+	}
+	split2 := strings.Split(split1[1], " ")
+	return split2[1]
+}
+
+func PasteIntoClipboard(string string) {
+	err := clipboard.WriteAll(string)
+	if err != nil {
+		log.Println("Error pasting into clipboard")
+	}
 }
