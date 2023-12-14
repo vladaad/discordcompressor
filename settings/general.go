@@ -12,8 +12,10 @@ func initGeneral() *general {
 		FDKaacExecutable:  "fdkaac",
 		FHGaacExecutable:  "fhgaacenc",
 		OutputSuffix:      "-%smb",
-		UploadService:     "none",
+		AutoUpload:        false,
+		UploadService:     "catbox",
 		UploadMaxMB:       100,
+		UploadMaxBitrate:  3500,
 	}
 }
 
@@ -26,6 +28,8 @@ type general struct {
 	FDKaacExecutable  string
 	FHGaacExecutable  string
 	OutputSuffix      string
+	AutoUpload        bool
 	UploadService     string
 	UploadMaxMB       float64
+	UploadMaxBitrate  int
 }

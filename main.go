@@ -87,6 +87,9 @@ func init() {
 	settings.MixAudio = *mixAudio
 	settings.NormAudio = *normAudio
 
+	// Settings loading
+	settings.LoadSettings(*settingsFile)
+
 	// Load defaults
 	if *targetSizeMB == float64(-1) {
 		if *upload { // This is only set when the flag is used to ensure that TargetSizeMB in settings can still be used to compensate for overhead in some configs
@@ -96,8 +99,10 @@ func init() {
 	}
 	targetSize = int(*targetSizeMB * 8388608) // 1024*1024*8 - in bits
 
-	// Settings loading
-	settings.LoadSettings(*settingsFile)
+	if *upload {
+		settings.General.AutoUpload = *upload
+	}
+
 }
 
 func main() {
@@ -105,7 +110,7 @@ func main() {
 	log.Println("Done!")
 
 	// Optional video upload
-	if settings.General.UploadService != "none" {
+	if settings.General.AutoUpload {
 		URL := uploader.Upload(outVideo)
 		if URL != "" {
 			log.Println("Uploaded to: " + URL)
@@ -133,6 +138,12 @@ func compress(inVideo string) string {
 	// min(target bps/time, max bps)
 	video.Output.Bitrate.Total = int(math.Min(float64(targetSize)/video.Time.Duration, float64(settings.Encoding.MaxBitrate*1024)))
 
+	// Cap for uploading
+	// min(target bps, max bps)
+	if settings.General.AutoUpload {
+		video.Output.Bitrate.Total = int(math.Min(float64(video.Output.Bitrate.Total), float64(settings.General.UploadMaxBitrate*1024)))
+	}
+	
 	// Encoder selecction
 	video.Output.Force.Video, video.Output.Force.Audio, video.Output.Force.Container = forceEncoder, forceAEncoder, forceContainer
 	video = metadata.SelectEncoder(video)
