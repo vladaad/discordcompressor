@@ -1,4 +1,4 @@
-<!-- DO NOT REMOVE - contributor_list:data:start:["vladaad", "anddddrew"]:end -->
+<!-- DO NOT REMOVE - contributor_list:data:start:["vladaad", "0xacn"]:end -->
 
 # DiscordCompressor
 
@@ -36,12 +36,12 @@ Afterwards, run `go build`
 
 <!-- prettier-ignore-start -->
 <!-- DO NOT REMOVE - contributor_list:start -->
-
 ## 👥 Contributors
+
 
 - **[@vladaad](https://github.com/vladaad)**
 
-- **[@anddddrew](https://github.com/anddddrew)**
+- **[@0xacn](https://github.com/0xacn)**
 
 <!-- DO NOT REMOVE - contributor_list:end -->
 <!-- prettier-ignore-end -->
