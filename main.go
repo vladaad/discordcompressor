@@ -143,8 +143,8 @@ func compress(inVideo string) string {
 	if settings.General.AutoUpload {
 		video.Output.Bitrate.Total = int(math.Min(float64(video.Output.Bitrate.Total), float64(settings.General.UploadMaxBitrate*1024)))
 	}
-	
-	// Encoder selecction
+
+	// Encoder selection
 	video.Output.Force.Video, video.Output.Force.Audio, video.Output.Force.Container = forceEncoder, forceAEncoder, forceContainer
 	video = metadata.SelectEncoder(video)
 	video = metadata.CalcOverhead(video)
